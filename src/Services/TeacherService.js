@@ -1,4 +1,5 @@
 import { pool } from "../Db/connection.js";
+import { CreateMSGV } from "../Utils/create_id.js";
 
 const getAllTeacher = async (
   keyword,
@@ -30,7 +31,6 @@ const getAllTeacher = async (
     const validSort = ["MSGV", "hoten"];
     const sortCol = validSort.includes(sortBy) ? sortBy : "MSGV";
     const sortOrder = order.toLowerCase() === "desc" ? "DESC" : "ASC";
-    
 
     // Đếm tổng số bản ghi
     const [countRows] = await pool.query(
@@ -47,9 +47,55 @@ const getAllTeacher = async (
       total,
       page: pageNum,
       limit: limitNum,
-      totalPages: Math.ceil(total/limitNum),
-      data: rows
+      totalPages: Math.ceil(total / limitNum),
+      data: rows,
     };
+  } catch (err) {
+    throw err;
+  }
+};
+
+const createTeacher = async (data) => {
+  const {
+    hoten,
+    ngaysinh,
+    sdt,
+    diachi,
+    email,
+    gioitinh,
+    chucdanh,
+    trinhdo,
+    khoa,
+    hinhanh,
+    role
+  } = data;
+  try {
+    const MSGV = CreateMSGV(role)
+    // create user
+    const [user] = await pool.query(
+      "INSERT INTO Teacher (MSGV, hoten, ngaysinh, sdt, diachi, email, gioitinh, chucdanh, trinhdo, khoa, hinhanh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        MSGV,
+        hoten,
+        ngaysinh,
+        sdt,
+        diachi,
+        email,
+        gioitinh,
+        chucdanh,
+        trinhdo,
+        khoa,
+        hinhanh,
+      ]
+    );
+
+    // create account
+    const password = ngaysinh.replaceAll('-','')
+    const [account] = await pool.query(
+      "INSERT INTO Account_List (password,role,username) VALUES (?,?,?)",[password,role,MSGV]
+    )
+
+    return {id: user.insertId,user};
   } catch (err) {
     throw err;
   }
@@ -57,4 +103,5 @@ const getAllTeacher = async (
 
 export const TeacherService = {
   getAllTeacher,
+  createTeacher,
 };
