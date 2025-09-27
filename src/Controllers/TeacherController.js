@@ -2,7 +2,8 @@ import {TeacherService} from "../Services/TeacherService.js"
 
 const getAllTeacher = async (req, res, next) => {
     try {
-        const result = await TeacherService.getAllTeacher()
+        const {keyword, gioitinh, sortBy, order, limit, page} = req.query
+        const result = await TeacherService.getAllTeacher(keyword,gioitinh,sortBy,order,page,limit)
         res.status(200).json(result)
     }
     catch (err){
