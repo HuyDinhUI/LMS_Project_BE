@@ -1,6 +1,6 @@
-export const CreateMSGV = (role) => {
+export const CreateMSGV = (type) => {
     let msgv = ''
-    if (role === 'Giảng viên cơ hữu'){
+    if (type === 'Cơ hữu'){
         msgv = '0100' + Math.floor(Math.random() * 9999)
     }
     else {

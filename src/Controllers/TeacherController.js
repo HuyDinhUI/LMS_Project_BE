@@ -1,4 +1,5 @@
 import {TeacherService} from "../Services/TeacherService.js"
+import StatusCode from "http-status-codes"
 
 const getAllTeacher = async (req, res, next) => {
     try {
@@ -21,7 +22,43 @@ const createTeacher = async (req, res, next) => {
     }
 }
 
+const deleteTeacher = async (req, res, next) => {
+    try {
+        const result = await TeacherService.deleteTeacher(req.params.msgv)
+        res.status(200).json(result)
+    }
+    catch (err){
+        res.status(400).json({message: err.message})
+    }
+}
+
+const getOneTeacher = async (req, res, next) => {
+    try{
+        const result = await TeacherService.getOneTeacher(req.params.msgv)
+        if (!result){
+            res.status(StatusCode.NOT_FOUND).json({message: "Không tìm thấy giảng viên"})
+        }
+        res.status(200).json(result)
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
+
+const updateTeacher = async (req, res, next) => {
+    try{
+        const result = await TeacherService.updateTeacher(req.body)
+        res.status(200).json(result)
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
+
 export const TeacherController = {
     getAllTeacher,
-    createTeacher
+    createTeacher,
+    deleteTeacher,
+    getOneTeacher,
+    updateTeacher
 }

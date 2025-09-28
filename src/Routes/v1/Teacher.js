@@ -6,7 +6,12 @@ const Router = express.Router()
 
 Router.route('/getAllTeacher').get(TeacherController.getAllTeacher)
 
+Router.route('/getOneTeacher/:msgv').get(TeacherController.getOneTeacher)
+
 Router.route('/createTeacher').post(TeacherValidation.createTeacher,TeacherController.createTeacher)
 
+Router.route('/deleteTeacher/:msgv').delete(TeacherController.deleteTeacher)
+
+Router.route('/updateTeacher').put(TeacherController.updateTeacher)
 
 export const TeacherRouter = Router

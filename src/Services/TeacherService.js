@@ -15,7 +15,7 @@ const getAllTeacher = async (
     const limitNum = parseInt(limit) || 10;
     const offset = (pageNum - 1) * limitNum;
 
-    let query = "FROM Teacher WHERE 1=1";
+    let query = "FROM GiangVien WHERE 1=1";
     let params = [];
 
     if (keyword) {
@@ -55,6 +55,18 @@ const getAllTeacher = async (
   }
 };
 
+const getOneTeacher = async (msgv) => {
+  try {
+    const [user] = await pool.query("SELECT * FROM GiangVien WHERE MSGV = ?", [
+      msgv,
+    ]);
+
+    return { data: user };
+  } catch (err) {
+    throw err;
+  }
+};
+
 const createTeacher = async (data) => {
   const {
     hoten,
@@ -63,17 +75,28 @@ const createTeacher = async (data) => {
     diachi,
     email,
     gioitinh,
-    chucdanh,
+    MaBM,
     trinhdo,
-    khoa,
-    hinhanh,
-    role
+    ngaytuyendung,
+    trangthai = "Đang công tác",
+    loaigiangvien,
+    donvicongtac,
   } = data;
   try {
-    const MSGV = CreateMSGV(role)
+    const MSGV = CreateMSGV(loaigiangvien);
+
+    //check mail
+    const [mailExist] = await pool.query(
+      "SELECT * FROM GiangVien WHERE email = ?",
+      [email]
+    );
+    if (mailExist) {
+      throw Error("Email đã tồn tại");
+    }
+
     // create user
     const [user] = await pool.query(
-      "INSERT INTO Teacher (MSGV, hoten, ngaysinh, sdt, diachi, email, gioitinh, chucdanh, trinhdo, khoa, hinhanh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO GiangVien (MSGV, hoten, ngaysinh, sdt, diachi, email, gioitinh, MaBM, trinhdo, ngaytuyendung, trangthai, loai_giangvien, don_vi_cong_tac) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         MSGV,
         hoten,
@@ -82,20 +105,81 @@ const createTeacher = async (data) => {
         diachi,
         email,
         gioitinh,
-        chucdanh,
+        MaBM,
         trinhdo,
-        khoa,
-        hinhanh,
+        ngaytuyendung,
+        trangthai,
+        loaigiangvien,
+        donvicongtac,
       ]
     );
 
     // create account
-    const password = ngaysinh.replaceAll('-','')
+    const password = ngaysinh.replaceAll("-", "");
     const [account] = await pool.query(
-      "INSERT INTO Account_List (password,role,username) VALUES (?,?,?)",[password,role,MSGV]
-    )
+      "INSERT INTO Account_List (password,role,username) VALUES (?,?,?)",
+      [password, "GV", MSGV]
+    );
 
-    return {id: user.insertId,user};
+    return { id: user.insertId, user };
+  } catch (err) {
+    throw err;
+  }
+};
+
+const deleteTeacher = async (msgv) => {
+  try {
+    const [account] = await pool.query(
+      "DELETE FROM Account_List WHERE username = ?",
+      [msgv]
+    );
+    const [user] = await pool.query("DELETE FROM GiangVien WHERE MSGV = ?", [
+      msgv,
+    ]);
+
+    return { user, account };
+  } catch (err) {
+    throw err;
+  }
+};
+
+const updateTeacher = async (data) => {
+  const {
+    MSGV,
+    hoten,
+    ngaysinh,
+    sdt,
+    diachi,
+    email,
+    gioitinh,
+    MaBM,
+    trinhdo,
+    ngaytuyendung,
+    trangthai = "Đang công tác",
+    loai_giangvien,
+    don_vi_cong_tac,
+  } = data;
+  try {
+    const [result] = await pool.query(
+      "UPDATE GiangVien SET hoten = ?, ngaysinh = ?, sdt = ?, diachi = ?, email = ?, gioitinh = ?, MaBM = ?, trinhdo = ?, ngaytuyendung = ?, trangthai = ?, loai_giangvien = ?, don_vi_cong_tac = ? WHERE MSGV = ?",
+      [
+        hoten,
+        ngaysinh,
+        sdt,
+        diachi,
+        email,
+        gioitinh,
+        MaBM,
+        trinhdo,
+        ngaytuyendung,
+        trangthai,
+        loai_giangvien,
+        don_vi_cong_tac,
+        MSGV
+      ]
+    );
+
+    return {message: 'Update thành công'}
   } catch (err) {
     throw err;
   }
@@ -104,4 +188,7 @@ const createTeacher = async (data) => {
 export const TeacherService = {
   getAllTeacher,
   createTeacher,
+  deleteTeacher,
+  getOneTeacher,
+  updateTeacher
 };

@@ -9,14 +9,14 @@ const createTeacher = async (req, res, next) => {
       .pattern(/^(0[1-9][0-9]{8})$/) // ví dụ regex số VN: 10 số, bắt đầu bằng 0x
       .message("Số điện thoại không hợp lệ")
       .optional(),
-    khoa: Joi.string().required(),
     trinhdo: Joi.string().valid("Cử nhân", "Thạc sĩ", "Tiến sĩ").optional(),
     ngaysinh: Joi.date().less("now").optional(),
     diachi: Joi.string().required(),
     gioitinh: Joi.string().required(),
-    chucdanh: Joi.string().required(),
-    hinhanh: Joi.string().optional(),
-    role: Joi.string().required()
+    loaigiangvien: Joi.string().required(),
+    ngaytuyendung: Joi.date().optional(),
+    MaBM: Joi.string().required(),
+    donvicongtac: Joi.string().optional()
   });
 
   try {
