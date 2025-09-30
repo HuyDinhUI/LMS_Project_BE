@@ -9,16 +9,16 @@ const getSchedule = async (msgv, from, to) => {
     }
 
     let sql = `
-        select ld.MaLichDay , ld.ngay_day, ld.tiet_batdau ,ld.tiet_kethuc ,ld.phonghoc ,
-        gv.hoten as giangvien, mh.ten_mon , lh.ten_lop 
+        select ld.MaLichDay , ld.ngay_day, ld.tiet_batdau ,ld.tiet_kethuc ,lh.phonghoc ,
+        gv.hoten as giangvien, hp.ten_hocphan , lh.ten_lop, lh.MaLop  
         from LichDay ld
-        join GiangVien gv on ld.MSGV = gv.MSGV 
-        join MonHoc mh on ld.MaMH = mh.MaMH 
-        join LopHoc lh on ld.MaLop = lh.MaLop
+        join LopHoc lh on ld.MaLop = lh.MaLop 
+        join GiangVien gv on lh.MSGV = gv.MSGV 
+        join HocPhan hp on lh.MaHP  = hp.MaHP 
         where 1=1`;
     const params =[]
     if (msgv){
-        sql += " and ld.MSGV = ?"
+        sql += " and lh.MSGV = ?"
         params.push(msgv)
     }
     if (from && to){

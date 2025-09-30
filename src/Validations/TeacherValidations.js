@@ -15,7 +15,7 @@ const createTeacher = async (req, res, next) => {
     gioitinh: Joi.string().required(),
     loaigiangvien: Joi.string().required(),
     ngaytuyendung: Joi.date().optional(),
-    MaBM: Joi.string().required(),
+    MaKhoa: Joi.string().required(),
     donvicongtac: Joi.string().optional()
   });
 

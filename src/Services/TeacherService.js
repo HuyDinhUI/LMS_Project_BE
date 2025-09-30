@@ -75,7 +75,7 @@ const createTeacher = async (data) => {
     diachi,
     email,
     gioitinh,
-    MaBM,
+    MaKhoa,
     trinhdo,
     ngaytuyendung,
     trangthai = "Đang công tác",
@@ -83,20 +83,20 @@ const createTeacher = async (data) => {
     donvicongtac,
   } = data;
   try {
-    const MSGV = CreateMSGV(loaigiangvien);
+    const MSGV = CreateMSGV(loaigiangvien, MaKhoa);
 
     //check mail
     const [mailExist] = await pool.query(
       "SELECT * FROM GiangVien WHERE email = ?",
       [email]
     );
-    if (mailExist) {
+    if (mailExist.length > 0) {
       throw Error("Email đã tồn tại");
     }
 
     // create user
     const [user] = await pool.query(
-      "INSERT INTO GiangVien (MSGV, hoten, ngaysinh, sdt, diachi, email, gioitinh, MaBM, trinhdo, ngaytuyendung, trangthai, loai_giangvien, don_vi_cong_tac) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO GiangVien (MSGV, hoten, ngaysinh, sdt, diachi, email, gioitinh, MaKhoa, trinhdo, ngaytuyendung, trangthai, loai_giangvien, don_vi_cong_tac) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         MSGV,
         hoten,
@@ -105,7 +105,7 @@ const createTeacher = async (data) => {
         diachi,
         email,
         gioitinh,
-        MaBM,
+        MaKhoa,
         trinhdo,
         ngaytuyendung,
         trangthai,
@@ -152,7 +152,7 @@ const updateTeacher = async (data) => {
     diachi,
     email,
     gioitinh,
-    MaBM,
+    MaKhoa,
     trinhdo,
     ngaytuyendung,
     trangthai = "Đang công tác",
@@ -161,7 +161,7 @@ const updateTeacher = async (data) => {
   } = data;
   try {
     const [result] = await pool.query(
-      "UPDATE GiangVien SET hoten = ?, ngaysinh = ?, sdt = ?, diachi = ?, email = ?, gioitinh = ?, MaBM = ?, trinhdo = ?, ngaytuyendung = ?, trangthai = ?, loai_giangvien = ?, don_vi_cong_tac = ? WHERE MSGV = ?",
+      "UPDATE GiangVien SET hoten = ?, ngaysinh = ?, sdt = ?, diachi = ?, email = ?, gioitinh = ?, MaKhoa = ?, trinhdo = ?, ngaytuyendung = ?, trangthai = ?, loai_giangvien = ?, don_vi_cong_tac = ? WHERE MSGV = ?",
       [
         hoten,
         ngaysinh,
@@ -169,7 +169,7 @@ const updateTeacher = async (data) => {
         diachi,
         email,
         gioitinh,
-        MaBM,
+        MaKhoa,
         trinhdo,
         ngaytuyendung,
         trangthai,
