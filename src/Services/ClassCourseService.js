@@ -13,7 +13,8 @@ const getAllClassCourse = async (
     const limitNum = parseInt(limit) || 10;
     const offset = (pageNum - 1) * limitNum;
 
-    let query = "FROM LopHoc WHERE 1=1";
+    let query =
+      "FROM LopHoc WHERE 1=1";
     let params = [];
 
     if (keyword) {
@@ -56,14 +57,16 @@ const createClassCourse = async (data) => {
     si_so,
     MaHP,
     MSGV,
-    ngay_day,
+    ThuTrongTuan,
+    ngay_batdau,
+    ngay_kethuc,
     tiet_batdau,
     tiet_kethuc,
+    TrangThai,
   } = data;
 
   try {
     const MaLop = CreateMaLop(MaHP);
-    const MaLichDay = createMaLichDay(MaLop);
 
     if (tiet_batdau > tiet_kethuc) {
       throw Error("Tiết bắt đầu phải nhỏ hơn tiết kết thúc");
@@ -76,10 +79,34 @@ const createClassCourse = async (data) => {
     );
 
     // Lặp lịch
-    const [scheludes] = await pool.query(
-      "INSERT INTO LichDay (MaLichDay, MaLop, ngay_day, tiet_batdau, tiet_kethuc) VALUES (?, ?, ?, ?, ?)",
-      [MaLichDay, MaLop, ngay_day, tiet_batdau, tiet_kethuc]
-    );
+    let current = new Date(ngay_batdau);
+    const end = new Date(ngay_kethuc);
+    let MaLichDay = ''
+    let ngay_day = ''
+
+    while (current <= end) {
+      if (current.getDay() === parseInt(ThuTrongTuan)) {
+        MaLichDay = createMaLichDay(MaLop);
+        ngay_day = current.toISOString().split("T")[0]
+
+        const [scheludes] = await pool.query(
+          "INSERT INTO LichDay (MaLichDay, MaLop, ngay_day, ngay_batdau, ngay_kethuc, tiet_batdau, tiet_kethuc, TrangThai, ThuTrongTuan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          [
+            MaLichDay,
+            MaLop,
+            ngay_day,
+            ngay_batdau,
+            ngay_kethuc,
+            tiet_batdau,
+            tiet_kethuc,
+            TrangThai,
+            ThuTrongTuan,
+          ]
+        );
+      }
+
+      current.setDate(current.getDate() + 1)
+    }
 
     return {
       MaLop,
@@ -90,8 +117,12 @@ const createClassCourse = async (data) => {
       MaHP,
       MSGV,
       ngay_day,
+      ngay_batdau,
+      ngay_kethuc,
       tiet_batdau,
       tiet_kethuc,
+      TrangThai,
+      ThuTrongTuan
     };
   } catch (err) {
     throw err;
@@ -101,63 +132,67 @@ const createClassCourse = async (data) => {
 const updateClassCourse = async (data) => {
   const {
     MaLop,
-    MaLichDay,
     ten_lop,
     MaHK,
     phonghoc,
     si_so,
     MaHP,
     MSGV,
-    ngay_day,
-    tiet_batdau,
-    tiet_kethuc,
   } = data;
 
   try {
-    if (tiet_batdau > tiet_kethuc) {
-      throw Error("Tiết bắt đầu phải nhỏ hơn tiết kết thúc");
-    }
+    // if (tiet_batdau > tiet_kethuc) {
+    //   throw Error("Tiết bắt đầu phải nhỏ hơn tiết kết thúc");
+    // }
 
     // Cập nhật lớp học phần
     await pool.query(
-      "Update LopHoc set ten_lop = ?, MaHK = ?, phonghoc = ?, si_so = ?, MaHP = ?, MSGV = ? where MaLop = ?"
-      ,[ten_lop, MaHK, phonghoc, si_so, MaHP, MSGV,  MaLop]
-    )
+      "Update LopHoc set ten_lop = ?, MaHK = ?, phonghoc = ?, si_so = ?, MaHP = ?, MSGV = ? where MaLop = ?",
+      [ten_lop, MaHK, phonghoc, si_so, MaHP, MSGV, MaLop]
+    );
     // Cập nhật lịch dạy
-    await pool.query(
-      "Update LichDay set MaLop = ?, ngay_day = ?, tiet_batdau = ?, tiet_kethuc = ? where MaLichDay = ?"
-      ,[MaLop, ngay_day, tiet_batdau, tiet_kethuc, MaLichDay]
-    )
+    // await pool.query(
+    //   "Update LichDay set MaLop = ?, ngay_day = ?, tiet_batdau = ?, tiet_kethuc = ? where MaLichDay = ?",
+    //   [MaLop, ngay_day, tiet_batdau, tiet_kethuc, MaLichDay]
+    // );
 
     return {
       MaLop,
-      MaLichDay,
+      ten_lop,
       MaHK,
       phonghoc,
       si_so,
       MaHP,
       MSGV,
-      ngay_day,
-      tiet_batdau,
-      tiet_kethuc,
-    }
+    };
   } catch (err) {
     throw err;
   }
 };
 
-const deleteClassCourse = async (MaLop) => {};
+const deleteClassCourse = async (MaLop) => {
+  try {
+    // Xoá lịch trước
+    await pool.query("delete from LichDay where MaLop = ?", [MaLop]);
+    // Xoá lớp học phần
+    await pool.query("delete from LopHoc where MaLop = ?", [MaLop]);
+
+    return { MaLop };
+  } catch (err) {
+    throw err;
+  }
+};
 
 const getOneClassCourse = async (Malop) => {
-  try{
+  try {
     const [classCourse] = await pool.query(
-      "select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so ,ld.ngay_day , ld.tiet_batdau ,ld.tiet_kethuc  from LopHoc lh join LichDay ld on lh.MaLop = ld.MaLop where lh.MaLop = ?"
-    ,[Malop])
+      "select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so ,ld.ngay_day , ld.tiet_batdau ,ld.tiet_kethuc,  gv.hoten, gv.MSGV, lh.MaHP  from LopHoc lh join LichDay ld on lh.MaLop = ld.MaLop join GiangVien gv on gv.MSGV = lh.MSGV where lh.MaLop = ?",
+      [Malop]
+    );
 
-    return {data: classCourse}
-  }
-  catch(err){
-    throw err
+    return { data: classCourse };
+  } catch (err) {
+    throw err;
   }
 };
 

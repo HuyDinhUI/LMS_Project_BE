@@ -30,13 +30,21 @@ const updateClassCourse = async (req, res, next) => {
     const result = await ClassCourseService.updateClassCourse(req.body);
     res
       .status(200)
-      .json({ message: " Cập nhật lớp học phần thành công", result });
+      .json({ message: "Cập nhật lớp học phần thành công", result });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-const deleteClassCourse = async (req, res, next) => {};
+const deleteClassCourse = async (req, res, next) => {
+  try{
+    const result = await ClassCourseService.deleteClassCourse(req.params.malop)
+    res.status(200).json({message: "Xoá lớp học phần thành công", result})
+  }
+  catch(err){
+    res.status(500).json({message: err.message})
+  }
+};
 
 const getOneClassCourse = async (req, res, next) => {
   try {
