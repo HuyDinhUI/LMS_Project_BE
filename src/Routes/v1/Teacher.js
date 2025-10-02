@@ -14,4 +14,6 @@ Router.route('/deleteTeacher/:msgv').delete(TeacherController.deleteTeacher)
 
 Router.route('/updateTeacher').put(TeacherController.updateTeacher)
 
+Router.route('/getSchedule/:msgv').get(TeacherController.getSchedule)
+
 export const TeacherRouter = Router

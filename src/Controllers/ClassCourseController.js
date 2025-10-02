@@ -55,10 +55,22 @@ const getOneClassCourse = async (req, res, next) => {
   }
 };
 
+const getClassCourseByTeacher = async (req, res, next) => {
+  try {
+    const result = await ClassCourseService.getClassCourseByTeacher(req.params.msgv)
+
+    res.status(200).json({message: 'Lấy lớp học phần thành công',result})
+  }
+  catch(err){
+    res.status(500).json({message: err.message})
+  }
+}
+
 export const ClassCourseController = {
   getAllClassCourse,
   createClassCourse,
   updateClassCourse,
   deleteClassCourse,
   getOneClassCourse,
+  getClassCourseByTeacher
 };

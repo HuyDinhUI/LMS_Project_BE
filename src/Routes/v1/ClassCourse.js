@@ -13,4 +13,6 @@ Router.route('/deleteClassCourse/:malop').delete(ClassCourseController.deleteCla
 
 Router.route('/getOneClassCourse/:malop').get(ClassCourseController.getOneClassCourse)
 
+Router.route('/getClassCourseByTeacher/:msgv').get(ClassCourseController.getClassCourseByTeacher)
+
 export const ClassCourseRouter = Router

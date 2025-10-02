@@ -55,10 +55,21 @@ const updateTeacher = async (req, res, next) => {
     }
 }
 
+const getSchedule = async (req, res, next) => {
+    try{
+        const result = await TeacherService.getSchedule(req.params.msgv)
+        res.status(200).json({message: 'Lấy lịch thành công',result})
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
+
 export const TeacherController = {
     getAllTeacher,
     createTeacher,
     deleteTeacher,
     getOneTeacher,
-    updateTeacher
+    updateTeacher,
+    getSchedule
 }

@@ -196,10 +196,25 @@ const getOneClassCourse = async (Malop) => {
   }
 };
 
+const getClassCourseByTeacher = async (msgv) => {
+  try{ 
+    const [classCourse] = await pool.query(
+      "select * from LopHoc where MSGV = ?"
+      ,[msgv]
+    )
+
+    return {data: classCourse}
+  }
+  catch(err){
+    throw err
+  }
+}
+
 export const ClassCourseService = {
   getAllClassCourse,
   createClassCourse,
   updateClassCourse,
   deleteClassCourse,
   getOneClassCourse,
+  getClassCourseByTeacher
 };

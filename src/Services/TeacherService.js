@@ -57,7 +57,7 @@ const getAllTeacher = async (
 
 const getOneTeacher = async (msgv) => {
   try {
-    const [user] = await pool.query("SELECT * FROM GiangVien WHERE MSGV = ?", [
+    const [user] = await pool.query("SELECT *, k.ten_khoa FROM GiangVien gv join Khoa k on gv.MaKhoa = k.MaKhoa WHERE gv.MSGV = ?", [
       msgv,
     ]);
 
@@ -185,10 +185,33 @@ const updateTeacher = async (data) => {
   }
 };
 
+const getSchedule = async (msgv) => {
+  try{
+    const [schedule] = await pool.query(`
+      select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so ,ld.ngay_day , ld.tiet_batdau ,ld.tiet_kethuc, gv.hoten, gv.MSGV, ld.MaLichDay  
+      from LopHoc lh 
+      join LichDay ld on lh.MaLop = ld.MaLop
+      join GiangVien gv on gv.MSGV = lh.MSGV
+      where lh.MSGV   = ?
+      group by ld.MaLop, ld.ngay_day , ld.tiet_batdau , ld.tiet_kethuc, ld.MaLichDay
+      `,[msgv])
+
+
+
+      return {data: schedule}
+  }
+
+  
+  catch(err){
+    throw err
+  }
+}
+
 export const TeacherService = {
   getAllTeacher,
   createTeacher,
   deleteTeacher,
   getOneTeacher,
-  updateTeacher
+  updateTeacher,
+  getSchedule
 };
