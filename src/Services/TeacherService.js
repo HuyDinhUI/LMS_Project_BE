@@ -188,12 +188,12 @@ const updateTeacher = async (data) => {
 const getSchedule = async (msgv) => {
   try{
     const [schedule] = await pool.query(`
-      select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so ,ld.ngay_day , ld.tiet_batdau ,ld.tiet_kethuc, gv.hoten, gv.MSGV, ld.MaLichDay  
+      select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so ,ld.ngay_day , ld.tiet_batdau ,ld.tiet_kethuc, gv.hoten, gv.MSGV, ld.MaLichDay, ld.TrangThai  
       from LopHoc lh 
       join LichDay ld on lh.MaLop = ld.MaLop
       join GiangVien gv on gv.MSGV = lh.MSGV
       where lh.MSGV   = ?
-      group by ld.MaLop, ld.ngay_day , ld.tiet_batdau , ld.tiet_kethuc, ld.MaLichDay
+      group by ld.MaLop, ld.ngay_day , ld.tiet_batdau , ld.tiet_kethuc, ld.MaLichDay, ld.TrangThai
       `,[msgv])
 
 

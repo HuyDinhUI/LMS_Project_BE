@@ -5,6 +5,7 @@ import { ScheduleTeacherRouter } from "./Schedule.js";
 import { CourseRouter } from "./Course.js";
 import { ClassCourseRouter } from "./ClassCourse.js";
 import { AuthRouter } from "./Auth.js";
+import { StudentRouter } from "./Student.js";
 
 
 const Router = express.Router();
@@ -22,6 +23,8 @@ Router.use('/schedule',ScheduleTeacherRouter)
 Router.use('/course',CourseRouter)
 
 Router.use('/classCourse',ClassCourseRouter)
+
+Router.use('/student',StudentRouter)
 
 
 

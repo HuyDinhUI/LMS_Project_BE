@@ -49,6 +49,48 @@ const getSchedule = async (
   }
 };
 
+const getScheduleById = async (malich) => {
+  try{
+    const [schedule] = await pool.query('select * from LichDay where MaLichDay = ?',[malich])
+
+    if (schedule.length === 0){
+      throw Error('Lịch không tồn tại')
+    }
+
+    return {data: schedule}
+  }
+  catch(err){
+    throw err
+  }
+}
+
+const updateSchedule = async (data) => {
+  const {MaLichDay, ngay_day, ngay_batdau, ngay_kethuc, ThuTrongTuan, tiet_batdau, tiet_kethuc, TrangThai} = data
+   
+  try{
+    await pool.query(
+      "update LichDay set ngay_day = ?, ngay_batdau = ?, ngay_kethuc = ?, ThuTrongTuan = ?, tiet_batdau = ?, tiet_kethuc = ?, TrangThai = ? where MaLichDay = ?"
+      ,[ngay_day, ngay_batdau, ngay_kethuc, ThuTrongTuan, tiet_batdau, tiet_kethuc, TrangThai, MaLichDay]
+    )
+     return {
+      MaLichDay,
+      ngay_day,
+      ngay_batdau,
+      ngay_kethuc,
+      ThuTrongTuan,
+      tiet_batdau,
+      tiet_kethuc,
+      TrangThai
+     }
+
+  }
+  catch(err){
+    throw err
+  }
+}
+
 export const ScheduleTeacherService = {
   getSchedule,
+  getScheduleById,
+  updateSchedule
 };
