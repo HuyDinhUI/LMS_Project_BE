@@ -6,6 +6,7 @@ import { CourseRouter } from "./Course.js";
 import { ClassCourseRouter } from "./ClassCourse.js";
 import { AuthRouter } from "./Auth.js";
 import { StudentRouter } from "./Student.js";
+import { EnrollClassCourseRouter } from "./EnrollClassCourse.js";
 
 
 const Router = express.Router();
@@ -26,7 +27,7 @@ Router.use('/classCourse',ClassCourseRouter)
 
 Router.use('/student',StudentRouter)
 
-
+Router.use('/enrollClassCourse',EnrollClassCourseRouter)
 
 
 export const APIs_v1 = Router

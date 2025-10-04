@@ -57,7 +57,7 @@ const getAllStudent = async (
 
 const getOneStudent = async (masv) => {
     try{
-        const [student] = await pool.query("select * from SinhVien where MaSV = ?",[masv])
+        const [student] = await pool.query("select *, k.ten_khoa,n.ten_nganh from SinhVien s join Khoa k on s.MaKhoa = k.MaKhoa join ChuyenNganh n on s.MaNganh = n.MaNganh where s.MaSV = ?",[masv])
 
         if  (student.length === 0){
             throw Error('Sinh viên không tồn tại')
