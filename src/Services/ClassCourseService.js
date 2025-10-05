@@ -210,11 +210,24 @@ const getClassCourseByTeacher = async (msgv) => {
   }
 }
 
+const getClassCourseByStudent = async (masv) => {
+  const [classCourse] = await pool.query(
+    `select lh.MaLop , lh.ten_lop , lh.si_so , lh.MaHP 
+    from LopHoc lh
+    join DangKyHocPhan dkhp on lh.MaLop = dkhp.MaLop 
+    where dkhp.MaSV  = ?
+    group by lh.MaLop`,[masv]
+  )
+
+  return {data: classCourse}
+}
+
 export const ClassCourseService = {
   getAllClassCourse,
   createClassCourse,
   updateClassCourse,
   deleteClassCourse,
   getOneClassCourse,
-  getClassCourseByTeacher
+  getClassCourseByTeacher,
+  getClassCourseByStudent
 };

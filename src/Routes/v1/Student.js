@@ -13,4 +13,6 @@ Router.route('/updateStudent').put(StudentController.updateStudent)
 
 Router.route('/deleteStudent/:masv').delete(StudentController.deleteStudent)
 
+Router.route('/getSchedule/:masv').get(StudentController.getSchedule)
+
 export const StudentRouter = Router

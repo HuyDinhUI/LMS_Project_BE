@@ -45,11 +45,21 @@ const deleteStudent = async () => {
     
 }
 
+const getSchedule = async (req, res, next) => {
+    try{
+        const result = await StudentService.getSchedule(req.params.masv)
+        res.status(200).json({message: 'Lấy lịch thành công',result})
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
 
 export const StudentController = {
     getAllStudent,
     getOneStudent,
     createStudent,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getSchedule
 }

@@ -71,7 +71,7 @@ const getOneStudent = async (masv) => {
 };
 
 const createStudent = async (data) => {
-    const {hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa} = data
+    const {hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa, MaNganh} = data
 
     try{
         const MaSV = CreateMaSV(MaKhoa)
@@ -83,8 +83,8 @@ const createStudent = async (data) => {
         }
         
         const [student] = await pool.query(
-            "Insert into SinhVien (MaSV,hoten,email,sdt,ngaysinh,gioitinh,MaLopHC,MaKhoa) VALUES (?,?,?,?,?,?,?,?)"
-            ,[MaSV,hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa]
+            "Insert into SinhVien (MaSV,hoten,email,sdt,ngaysinh,gioitinh,MaLopHC,MaKhoa,MaNganh) VALUES (?,?,?,?,?,?,?,?,?)"
+            ,[MaSV,hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa,MaNganh]
         )
 
         const password = ngaysinh.replaceAll("-","")
@@ -141,10 +141,38 @@ const deleteStudent = async () => {
     
 };
 
+const getSchedule = async (masv) => {
+  try{
+    const [schedule] = await pool.query(
+      `select ld.MaLichDay , 
+      MAX(ld.MaLop) AS MaLop,
+      MAX(ld.ngay_day) AS ngay_day, 
+      MAX(ld.tiet_batdau) AS tiet_batdau, 
+      MAX(ld.tiet_kethuc) AS tiet_kethuc ,
+      MAX(ld.TrangThai) AS TrangThai , 
+      MAX(lh.ten_lop) AS ten_lop,
+      MAX(gv.hoten) AS hoten,
+      MAX(lh.phonghoc) AS phonghoc
+      from LichDay ld 
+      join DangKyHocPhan dkhp on ld.MaLop = dkhp.MaLop 
+      join LopHoc lh on ld.MaLop  = lh.MaLop 
+      join GiangVien gv on lh.MSGV = gv.MSGV 
+      where dkhp.MaSV = ?
+      group by ld.MaLichDay`,[masv]
+    )
+
+    return {data: schedule}
+  }
+  catch(err){
+    throw err
+  }
+}
+
 export const StudentService = {
   getAllStudent,
   getOneStudent,
   createStudent,
   updateStudent,
   deleteStudent,
+  getSchedule
 };

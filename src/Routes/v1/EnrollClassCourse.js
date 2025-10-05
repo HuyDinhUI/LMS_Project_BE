@@ -9,4 +9,8 @@ Router.route('/getCourseByProgram/:manganh').get(EnrollCourseController.getCours
 
 Router.route('/enroll').post(EnrollCourseController.enrollClassCourse)
 
+Router.route('/getEnrolledCourse/:masv').get(EnrollCourseController.getErolledCourseById)
+
+Router.route('/cancle').delete(EnrollCourseController.CancleEnrollCourse)
+
 export const EnrollClassCourseRouter = Router

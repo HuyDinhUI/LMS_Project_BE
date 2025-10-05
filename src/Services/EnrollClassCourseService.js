@@ -42,7 +42,8 @@ const getClassCourseByProgram = async (manganh, mahp) => {
         MAX(ld.tiet_batdau) AS tiet_batdau,
         MAX(ld.tiet_kethuc) AS tiet_kethuc,
         MAX(ld.ThuTrongTuan) AS ThuTrongTuan,
-        MAX(lh.MaHK) AS MaHK
+        MAX(lh.MaHK) AS MaHK,
+        MAX(hp.MaHP) AS MaHP
         FROM LopHoc lh
         JOIN LichDay ld ON lh.MaLop = ld.MaLop
         JOIN GiangVien gv ON lh.MSGV = gv.MSGV
@@ -112,8 +113,61 @@ const enrollClassCourse = async (MaSV, MaLop, MaHK, HocPhi, MaHP) => {
   }
 };
 
+const getErolledCourseById = async (MaSV) => {
+  try{
+    const [enrolled] = await pool.query(
+      `SELECT dkhp.MaLop , 
+      dkhp.NgayDangKy ,
+      dkhp.TrangThai , 
+      MAX(hp.ten_hocphan) AS ten_hocphan ,
+      MAX(hp.HocPhi) AS HocPhi,
+      MAX(cn.TrangThai) AS TrangThai,
+      MAX(hp.MaHP) AS MaHP
+      from DangKyHocPhan dkhp 
+      join LopHoc lh on dkhp.MaLop  = lh.MaLop 
+      join HocPhan hp on hp.MaHP = lh.MaHP 
+      join CongNo cn on dkhp.MaSV = cn.MaSV 
+      where dkhp.MaSV = ?
+      group by dkhp.MaLop`
+      ,[MaSV]
+    )
+
+    return {data: enrolled}
+  }
+  catch(err){
+    throw err
+  }
+}
+
+const CancleEnrollCourse = async (MaSV,MaLop, MaHP) => {
+  try{
+    // lấy số lượng đăng ký hiện tại
+    const [sl_dangky] = await pool.query("select sl_dangky from LopHoc where MaLop = ?",[MaLop])
+    
+    // xoá lớp học phần khỏi bảng dangkyhocphan
+    await pool.query("delete from DangKyHocPhan where MaSV = ? and MaLop = ?",[MaSV, MaLop])
+
+    // giảm số lượng đăng ký
+    await pool.query("update LopHoc set sl_dangky = ? where MaLop = ?",[sl_dangky[0].sl_dangky - 1, MaLop])
+
+    // xoá bảng điểm
+    await pool.query('delete from BangDiem where MaSV = ? and MaHP = ?',[MaSV,MaHP])
+
+    return {
+      MaSV,
+      MaLop
+    }
+
+  }
+  catch(err){
+    throw err
+  }
+}
+
 export const EnrollCourseService = {
   getClassCourseByProgram,
   enrollClassCourse,
   getCourseByProgram,
+  getErolledCourseById,
+  CancleEnrollCourse
 };

@@ -45,8 +45,31 @@ const enrollClassCourse = async (req, res, next) => {
   }
 };
 
+const getErolledCourseById = async (req, res, next) => {
+  try{
+    const result = await EnrollCourseService.getErolledCourseById(req.params.masv)
+    res.status(200).json({message: "Lấy danh sách thành công",result})
+  }
+  catch(err){
+    res.status(400).json({message: err.message})
+  }
+}
+
+const CancleEnrollCourse = async (req, res, next) => {
+  const {masv,malop,mahp} = req.query
+  try{
+    const result = await EnrollCourseService.CancleEnrollCourse(masv,malop,mahp)
+    res.status(200).json({message: 'Huỷ học phần thành công',result})
+  }
+  catch(err){
+    res.status(400).json({message: err.message})
+  }
+}
+
 export const EnrollCourseController = {
   getClassCourseByProgram,
   enrollClassCourse,
   getCourseByProgram,
+  getErolledCourseById,
+  CancleEnrollCourse
 };

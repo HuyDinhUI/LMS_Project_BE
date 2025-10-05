@@ -64,7 +64,7 @@ const getOneCourse = async (MaHP) => {
 }
 
 const createCourse = async (data) => {
-  const { ten_hocphan, so_tinchi, MaKhoa } = data;
+  const { ten_hocphan, so_tinchi, MaKhoa, HocPhi } = data;
 
   try {
     const MaHP = CreateMaHP(MaKhoa);
@@ -79,8 +79,8 @@ const createCourse = async (data) => {
     }
 
     const [course] = await pool.query(
-      "INSERT INTO HocPhan (MaHP, ten_hocphan, so_tinchi, MaKhoa) VALUES (?, ?, ?, ?)",
-      [MaHP, ten_hocphan, so_tinchi, MaKhoa]
+      "INSERT INTO HocPhan (MaHP, ten_hocphan, so_tinchi, MaKhoa, HocPhi) VALUES (?, ?, ?, ?, ?)",
+      [MaHP, ten_hocphan, so_tinchi, MaKhoa, HocPhi]
     );
 
     return {
