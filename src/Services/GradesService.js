@@ -12,6 +12,8 @@ const getGradesByStudent = async (masv) => {
             bd.diem_tong ,
             bd.diem_thang_4 ,
             bd.diem_chu  , 
+            bd.XepLoai ,
+            bd.TrangThai ,
             hp.ten_hocphan ,
             hp.so_tinchi
             from BangDiem bd 
