@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { APIs_v1 } from "./src/Routes/v1/index.js";
 import cors from "cors"
 import { corsOptions } from "./src/config/corsOptions.js";
+import path from "path"
 
 
 const app = express()
@@ -20,6 +21,9 @@ const START_SERVER = () => {
   app.use(cookieParser());
 
   app.use(cors(corsOptions));
+
+  const __dirname = path.resolve();
+  app.use("/contents", express.static(path.join(__dirname, "contents")));
 
   app.use("/v1", APIs_v1);
 

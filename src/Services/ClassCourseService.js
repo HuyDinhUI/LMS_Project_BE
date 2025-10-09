@@ -186,7 +186,7 @@ const deleteClassCourse = async (MaLop) => {
 const getOneClassCourse = async (Malop) => {
   try {
     const [classCourse] = await pool.query(
-      "select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so ,ld.ngay_day , ld.tiet_batdau ,ld.tiet_kethuc,  gv.hoten, gv.MSGV, lh.MaHP  from LopHoc lh join LichDay ld on lh.MaLop = ld.MaLop join GiangVien gv on gv.MSGV = lh.MSGV where lh.MaLop = ?",
+      "select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so , lh.MSGV, lh.MaHP  from LopHoc lh where lh.MaLop = ?",
       [Malop]
     );
 

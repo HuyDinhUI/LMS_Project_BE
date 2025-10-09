@@ -153,6 +153,9 @@ const CancleEnrollCourse = async (MaSV,MaLop, MaHP) => {
     // xoá bảng điểm
     await pool.query('delete from BangDiem where MaSV = ? and MaHP = ?',[MaSV,MaHP])
 
+    // xoá công nợ
+    await pool.query('delete from CongNo where MaSV = ? and MaLop = ?',[MaSV,MaLop])
+
     return {
       MaSV,
       MaLop
