@@ -11,6 +11,7 @@ import { MajorRouter } from "./Major.js";
 import { GradesRouter } from "./Grades.js";
 import { ContentRouter } from "./Content.js";
 import { UPLOAD_DIR_PATH } from "../../Middlewares/uploadMiddleware.js";
+import { AssignmentsRouter } from "./Assignments.js";
 
 
 const Router = express.Router();
@@ -38,6 +39,9 @@ Router.use('/major',MajorRouter)
 Router.use('/grades',GradesRouter)
 
 Router.use('/contents',ContentRouter)
+
+Router.use('/assignments',AssignmentsRouter)
+
 
 
 export const APIs_v1 = Router

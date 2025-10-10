@@ -97,6 +97,8 @@ const deleteContentById = async (MaNoiDung) => {
     }
 }
 
+
+
 export const ContentService = {
     createContent,
     getContentByOneClass,

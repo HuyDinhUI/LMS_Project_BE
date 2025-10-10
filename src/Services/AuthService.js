@@ -44,7 +44,7 @@ const Login = async (username, password) => {
 
 const getUserInfo = async (username) => {
     try{
-        const [user] = await pool.query("select username from Account_List where username = ?",[username])
+        const [user] = await pool.query("select * from Account_List where username = ?",[username])
 
         if (user.length === 0){
             throw Error('Username không tồn tại')
