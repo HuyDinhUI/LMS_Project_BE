@@ -10,5 +10,9 @@ Router.route('/create').post(upload.single("file"),AssignmentsController.createA
 Router.route('/update/:id').put(AssignmentsController.updateAssignment);
 Router.route('/delete/:mabaitap').delete(AssignmentsController.deleteAssignment);
 Router.route('/getListSubmited/:mabaitap').get(AssignmentsController.getListSubmited); 
+Router.route('/getAssignmentByStudent/:masv/:malop').get(AssignmentsController.getAssignmentByStudent);
+Router.route('/submit').post(upload.single("file"),AssignmentsController.Submited);
+Router.route('/getSubmissionByStudentAndAssignment/:masv/:mabaitap').get(AssignmentsController.getSubmissionByStudentAndAssignment);
+Router.route('/scoring').post(AssignmentsController.Scoring);
 
 export const AssignmentsRouter = Router;
