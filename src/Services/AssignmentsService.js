@@ -244,9 +244,9 @@ const getSubmissionByStudentAndAssignment = async (MaSV, MaBaiTap) => {
   } catch (err) {
     throw err;
   }
-}
+};
 
-const Scoring = async (MaSV, MaBaiTap,Diem) => {
+const Scoring = async (MaSV, MaBaiTap, Diem) => {
   try {
     const [result] = await pool.query(
       "UPDATE NopBai SET diem = ? WHERE MaSV = ? and MaBaiTap = ?",
@@ -255,11 +255,68 @@ const Scoring = async (MaSV, MaBaiTap,Diem) => {
     if (result.affectedRows === 0) {
       throw new Error("Không tìm thấy bài nộp để chấm điểm");
     }
-    return { MaBaiTap, MaSV,Diem };
+    return { MaBaiTap, MaSV, Diem };
   } catch (err) {
     throw err;
   }
-}
+};
+
+const getGrades = async (MaLop) => {
+  try {
+    // lấy danh sách tiêu đề bài tập
+    const [assignments] = await pool.query(
+      `SELECT DISTINCT TieuDe FROM BaiTap bt
+     JOIN LopHoc lh ON bt.MaLop = lh.MaLop
+     WHERE lh.MaLop = ?`,
+      [MaLop]
+    );
+
+    // Sinh ra phần SELECT động
+    const pivotColumns = assignments
+      .map(
+        (bt) =>
+          `MAX(
+        CASE
+          WHEN bt.TieuDe = '${bt.TieuDe}' THEN
+            CASE
+              WHEN nb.MaSV IS NULL THEN 'Chưa nộp'
+              WHEN nb.diem IS NULL THEN 'Đã nộp (Chưa chấm)'
+              WHEN nb.thoigian_nop > bt.HanNop THEN CONCAT(nb.diem, ' (Nộp trễ)')
+              ELSE CONCAT(nb.diem, ' (Đúng hạn)')
+            END
+        END
+      ) AS \`${bt.TieuDe}\`
+
+        `
+      )
+      .join(", ");
+
+    const sql = `
+    SELECT 
+      sv.MaSV,
+      sv.hoten,
+      ${pivotColumns},
+      ROUND(AVG(nb.diem), 2) AS 'Trung bình'
+    FROM BaiTap bt
+    JOIN LopHoc lh ON bt.MaLop = lh.MaLop
+    JOIN DangKyHocPhan dkhp ON dkhp.MaLop = lh.MaLop
+    JOIN SinhVien sv ON sv.MaSV = dkhp.MaSV
+    LEFT JOIN NopBai nb 
+      ON nb.MaSV = sv.MaSV 
+      AND nb.MaBaiTap = bt.MaBaiTap
+    WHERE lh.MaLop = ?
+    GROUP BY sv.MaSV, sv.hoten
+    ORDER BY sv.MaSV;
+  `;
+
+    const [grades] = await pool.query(sql, [MaLop]);
+    return { data: grades };
+  } catch (err) {
+    throw err;
+  }
+};
+
+
 
 export const AssignmentsService = {
   getAllAssignments,
@@ -271,5 +328,6 @@ export const AssignmentsService = {
   getAssignmentByStudent,
   Submited,
   getSubmissionByStudentAndAssignment,
-  Scoring
+  Scoring,
+  getGrades,
 };

@@ -116,6 +116,15 @@ const Scoring = async (req, res) => {
   }
 };
 
+const getGrades = async (req, res) => {
+  try {
+    const result = await AssignmentsService.getGrades(req.params.malop);
+    res.status(200).json({ message: "Lấy bảng điểm thành công", result });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 export const AssignmentsController = {
   getAllAssignments,
   getAssignmentById,
@@ -127,4 +136,5 @@ export const AssignmentsController = {
   Submited,
   getSubmissionByStudentAndAssignment,
   Scoring,
+  getGrades,
 };

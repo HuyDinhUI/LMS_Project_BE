@@ -14,5 +14,6 @@ Router.route('/getAssignmentByStudent/:masv/:malop').get(AssignmentsController.g
 Router.route('/submit').post(upload.single("file"),AssignmentsController.Submited);
 Router.route('/getSubmissionByStudentAndAssignment/:masv/:mabaitap').get(AssignmentsController.getSubmissionByStudentAndAssignment);
 Router.route('/scoring').post(AssignmentsController.Scoring);
+Router.route('/getGrades/:malop').get(AssignmentsController.getGrades);
 
 export const AssignmentsRouter = Router;
