@@ -1,0 +1,37 @@
+import {QuizService} from "../Services/QuizService.js"
+
+const getQuizByClass = async (req, res) => {
+    try{
+        const result = await QuizService.getQuizByClass(req.params.malop)
+        res.status(200).json({message: 'Lấy danh sách trắc nghiệm thành công',result})
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
+
+const getQuestionById = async (req, res) => {
+    try{
+        const result = await QuizService.getQuestionById(req.params.matn)
+        res.status(200).json({message: 'Lấy bộ câu hỏi thành công',result})
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
+
+const createQuiz = async (req, res) => {
+    try{
+        const result = await QuizService.createQuiz(req.body)
+        res.status(200).json({message: 'Tạo trắc nghiệm thành công', result})
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+}
+
+export const QuizController = {
+    getQuizByClass,
+    getQuestionById,
+    createQuiz
+}

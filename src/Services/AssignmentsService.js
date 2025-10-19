@@ -165,12 +165,16 @@ const getAssignmentByStudent = async (MaSV, MaLop) => {
       bt.original_name,
       bt.size,
       bt.NgayTao,
-      nb.diem AS DiemSo,
+      CASE
+          WHEN nb.MaSV IS NULL AND NOW() > bt.HanNop THEN 0
+          ELSE nb.diem
+      END AS DiemSo,
       CASE
           WHEN nb.MaSV IS NULL THEN 'Chưa nộp'
           WHEN nb.thoigian_nop > bt.HanNop THEN 'Nộp trễ'
           ELSE 'Đã nộp'
       END AS TrangThai
+
       FROM BaiTap bt
       JOIN LopHoc lh ON bt.MaLop = lh.MaLop
       JOIN DangKyHocPhan dkhp ON dkhp.MaLop = lh.MaLop
@@ -279,6 +283,7 @@ const getGrades = async (MaLop) => {
         CASE
           WHEN bt.TieuDe = '${bt.TieuDe}' THEN
             CASE
+              WHEN nb.MaSV IS NULL AND NOW() > bt.HanNop THEN 0
               WHEN nb.MaSV IS NULL THEN 'Chưa nộp'
               WHEN nb.diem IS NULL THEN 'Đã nộp (Chưa chấm)'
               WHEN nb.thoigian_nop > bt.HanNop THEN CONCAT(nb.diem, ' (Nộp trễ)')
