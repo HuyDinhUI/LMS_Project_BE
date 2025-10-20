@@ -30,8 +30,30 @@ const createQuiz = async (req, res) => {
     }
 }
 
+const submitQuiz = async (req, res) => {
+    try{
+        const result = await QuizService.submitQuiz(req.body)
+        res.status(200).json({message: 'Nộp bài thành công',result})
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+}
+
+const getQuizByStudent = async (req, res) => {
+    try{
+        const result = await QuizService.getQuizByStudent(req.params.masv,req.params.malop)
+        res.status(200).json({message: 'Lấy danh sách trắc nghiệm thành công',result})
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
+
 export const QuizController = {
     getQuizByClass,
     getQuestionById,
-    createQuiz
+    createQuiz,
+    submitQuiz,
+    getQuizByStudent
 }
