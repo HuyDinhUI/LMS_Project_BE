@@ -13,4 +13,8 @@ Router.route('/submitQuiz').post(QuizController.submitQuiz)
 
 Router.route('/getQuizByStudent/:masv/:malop').get(QuizController.getQuizByStudent)
 
+Router.route('/getSubmissions/:matn').get(QuizController.getListSubmited)
+
+Router.route('/getGrades/:malop').get(QuizController.getGrades)
+
 export const QuizRouter = Router

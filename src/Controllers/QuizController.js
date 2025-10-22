@@ -50,10 +50,32 @@ const getQuizByStudent = async (req, res) => {
     }
 }
 
+const getListSubmited = async (req, res) => {
+    try{
+        const result = await QuizService.getListSubmited(req.params.matn)
+        res.status(200).json({message: 'Lấy danh sách nộp bài thành công',result})
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
+
+const getGrades = async (req, res) => {
+    try{
+        const result = await QuizService.getGrades(req.params.malop)
+        res.status(200).json({message: 'Lấy danh sách điểm thành công',result})
+    }
+    catch(err){
+        res.status(400).json({message: err.message})
+    }
+}
+
 export const QuizController = {
     getQuizByClass,
     getQuestionById,
     createQuiz,
     submitQuiz,
-    getQuizByStudent
+    getQuizByStudent,
+    getListSubmited,
+    getGrades
 }

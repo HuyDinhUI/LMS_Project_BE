@@ -275,6 +275,103 @@ const getQuizByStudent = async (MaSV,MaLop) => {
   }
 }
 
+const getListSubmited = async (MaTN) => {
+  try{
+    const [submissions] = await pool.query(
+      `
+      select distinct
+      sv.MaSV,
+      sv.hoten,
+      bltn.ThoiGianNop,
+      bltn.MaBaiLam ,
+      tn.MaTN,
+      tn.TieuDe ,
+      tn.MoTa ,
+      tn.HanNop ,
+      tn.NgayTao,
+      case 
+        when bltn.MaSV is null and NOW() > tn.HanNop then 0
+        else bltn.TongDiem  
+      end as DiemSo,
+      case 
+        WHEN bltn.MaSV IS NULL THEN 'Chưa nộp'
+            WHEN bltn.ThoiGianNop > tn.HanNop THEN 'Nộp trễ'
+            ELSE 'Đã nộp'
+      end as TrangThaiNopBai
+      from TracNghiem tn 
+      join LopHoc lh on tn.MaLop = lh.MaLop 
+      join DangKyHocPhan dkhp on dkhp.MaLop = dkhp.MaLop 
+      join SinhVien sv on sv.MaSV = dkhp.MaSV 
+      left join BaiLamTracNghiem bltn on bltn.MaSV = sv.MaSV and bltn.MaTN = tn.MaTN 
+      where tn.MaTN = ?
+      order by tn.NgayTao DESC
+      `
+      ,[MaTN]
+    )
+
+    return {data: submissions}
+  }
+  catch(err){
+    throw err
+  }
+}
+
+const getGrades = async (MaLop) => {
+  try {
+    // lấy danh sách tiêu đề bài tập
+    const [quiz] = await pool.query(
+      `SELECT DISTINCT TieuDe FROM TracNghiem tn
+     JOIN LopHoc lh ON tn.MaLop = lh.MaLop
+     WHERE lh.MaLop = ? and tn.LoaiTracNghiem = 'test'`,
+      [MaLop]
+    );
+
+    // Sinh ra phần SELECT động
+    const pivotColumns = quiz
+      .map(
+        (tn) =>
+          `MAX(
+        CASE
+          WHEN tn.TieuDe = '${tn.TieuDe}' THEN
+            CASE
+              WHEN bltn.MaSV IS NULL AND NOW() > tn.HanNop THEN 0
+              WHEN bltn.MaSV IS NULL THEN 'Chưa nộp'
+              WHEN bltn.TongDiem IS NULL THEN 'Đã nộp (Chưa chấm)'
+              WHEN bltn.ThoiGianNop > tn.HanNop THEN CONCAT(bltn.TongDiem, ' (Nộp trễ)')
+              ELSE CONCAT(bltn.TongDiem, ' (Đúng hạn)')
+            END
+        END
+      ) AS \`${tn.TieuDe}\`
+
+        `
+      )
+      .join(", ");
+
+    const sql = `
+    SELECT 
+      sv.MaSV,
+      sv.hoten,
+      ${pivotColumns},
+      ROUND(AVG(bltn.TongDiem), 2) AS 'Trung bình'
+    FROM TracNghiem tn
+    JOIN LopHoc lh ON tn.MaLop = lh.MaLop
+    JOIN DangKyHocPhan dkhp ON dkhp.MaLop = lh.MaLop
+    JOIN SinhVien sv ON sv.MaSV = dkhp.MaSV
+    LEFT JOIN BaiLamTracNghiem bltn 
+      ON bltn.MaSV = sv.MaSV 
+      AND bltn.MaTN = tn.MaTN
+    WHERE lh.MaLop = ?
+    GROUP BY sv.MaSV, sv.hoten
+    ORDER BY sv.MaSV;
+  `;
+
+    const [grades] = await pool.query(sql, [MaLop]);
+    return { data: grades };
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const QuizService = {
   getQuizByClass,
   getQuestionById,
@@ -282,5 +379,7 @@ export const QuizService = {
   updateQuiz,
   deleteQuiz,
   submitQuiz,
-  getQuizByStudent
+  getQuizByStudent,
+  getListSubmited,
+  getGrades
 };
