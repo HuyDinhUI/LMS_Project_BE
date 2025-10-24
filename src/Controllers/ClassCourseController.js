@@ -77,6 +77,17 @@ const getClassCourseByStudent = async (req, res, next) => {
   }
 }
 
+const getMemberById = async (req, res) => {
+  try{
+    const result = await ClassCourseService.getMemberById(req.params.malop)
+
+    res.status(200).json({message: 'Lấy danh sách thành viên thành công',result})
+  }
+  catch(err){
+    res.status(400).json({message: err.message})
+  }
+}
+
 export const ClassCourseController = {
   getAllClassCourse,
   createClassCourse,
@@ -84,5 +95,6 @@ export const ClassCourseController = {
   deleteClassCourse,
   getOneClassCourse,
   getClassCourseByTeacher,
-  getClassCourseByStudent
+  getClassCourseByStudent,
+  getMemberById
 };

@@ -13,8 +13,7 @@ const getAllClassCourse = async (
     const limitNum = parseInt(limit) || 10;
     const offset = (pageNum - 1) * limitNum;
 
-    let query =
-      "FROM LopHoc WHERE 1=1";
+    let query = "FROM LopHoc WHERE 1=1";
     let params = [];
 
     if (keyword) {
@@ -81,13 +80,13 @@ const createClassCourse = async (data) => {
     // Lặp lịch
     let current = new Date(ngay_batdau);
     const end = new Date(ngay_kethuc);
-    let MaLichDay = ''
-    let ngay_day = ''
+    let MaLichDay = "";
+    let ngay_day = "";
 
     while (current <= end) {
       if (current.getDay() === parseInt(ThuTrongTuan)) {
         MaLichDay = createMaLichDay(MaLop);
-        ngay_day = current.toISOString().split("T")[0]
+        ngay_day = current.toISOString().split("T")[0];
 
         const [scheludes] = await pool.query(
           "INSERT INTO LichDay (MaLichDay, MaLop, ngay_day, ngay_batdau, ngay_kethuc, tiet_batdau, tiet_kethuc, TrangThai, ThuTrongTuan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -105,7 +104,7 @@ const createClassCourse = async (data) => {
         );
       }
 
-      current.setDate(current.getDate() + 1)
+      current.setDate(current.getDate() + 1);
     }
 
     return {
@@ -122,7 +121,7 @@ const createClassCourse = async (data) => {
       tiet_batdau,
       tiet_kethuc,
       TrangThai,
-      ThuTrongTuan
+      ThuTrongTuan,
     };
   } catch (err) {
     throw err;
@@ -130,15 +129,7 @@ const createClassCourse = async (data) => {
 };
 
 const updateClassCourse = async (data) => {
-  const {
-    MaLop,
-    ten_lop,
-    MaHK,
-    phonghoc,
-    si_so,
-    MaHP,
-    MSGV,
-  } = data;
+  const { MaLop, ten_lop, MaHK, phonghoc, si_so, MaHP, MSGV } = data;
 
   try {
     // if (tiet_batdau > tiet_kethuc) {
@@ -197,30 +188,52 @@ const getOneClassCourse = async (Malop) => {
 };
 
 const getClassCourseByTeacher = async (msgv) => {
-  try{ 
+  try {
     const [classCourse] = await pool.query(
-      "select * from LopHoc where MSGV = ?"
-      ,[msgv]
-    )
+      "select * from LopHoc where MSGV = ?",
+      [msgv]
+    );
 
-    return {data: classCourse}
+    return { data: classCourse };
+  } catch (err) {
+    throw err;
   }
-  catch(err){
-    throw err
-  }
-}
+};
 
 const getClassCourseByStudent = async (masv) => {
-  const [classCourse] = await pool.query(
-    `select lh.MaLop , lh.ten_lop , lh.si_so , lh.MaHP 
+  try {
+    const [classCourse] = await pool.query(
+      `select lh.MaLop , lh.ten_lop , lh.si_so , lh.MaHP 
     from LopHoc lh
     join DangKyHocPhan dkhp on lh.MaLop = dkhp.MaLop 
     where dkhp.MaSV  = ?
-    group by lh.MaLop`,[masv]
-  )
+    group by lh.MaLop`,
+      [masv]
+    );
 
-  return {data: classCourse}
-}
+    return { data: classCourse };
+  } catch (err) {
+    throw err;
+  }
+};
+
+const getMemberById = async (malop) => {
+  try{
+    const [members] = await pool.query(
+      `SELECT sv.hoten as sinhvien, sv.MaSV
+      from LopHoc lh 
+      join DangKyHocPhan dkhp on lh.MaLop = dkhp.MaLop 
+      join SinhVien sv on dkhp.MaSV = sv.MaSV 
+      where lh.MaLop = ?`
+      ,[malop]
+    )
+
+    return {data:members}
+  }
+  catch (err) {
+    throw err
+  }
+};
 
 export const ClassCourseService = {
   getAllClassCourse,
@@ -229,5 +242,6 @@ export const ClassCourseService = {
   deleteClassCourse,
   getOneClassCourse,
   getClassCourseByTeacher,
-  getClassCourseByStudent
+  getClassCourseByStudent,
+  getMemberById,
 };

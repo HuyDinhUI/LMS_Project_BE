@@ -17,4 +17,6 @@ Router.route('/getClassCourseByTeacher/:msgv').get(ClassCourseController.getClas
 
 Router.route('/getClassCourseByStudent/:masv').get(ClassCourseController.getClassCourseByStudent)
 
+Router.route('/getMemberById/:malop').get(ClassCourseController.getMemberById)
+
 export const ClassCourseRouter = Router
