@@ -177,7 +177,7 @@ const deleteClassCourse = async (MaLop) => {
 const getOneClassCourse = async (Malop) => {
   try {
     const [classCourse] = await pool.query(
-      "select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so , lh.MSGV, lh.MaHP  from LopHoc lh where lh.MaLop = ?",
+      "select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so , lh.MSGV, lh.MaHP, lh.cover  from LopHoc lh where lh.MaLop = ?",
       [Malop]
     );
 
@@ -203,7 +203,7 @@ const getClassCourseByTeacher = async (msgv) => {
 const getClassCourseByStudent = async (masv) => {
   try {
     const [classCourse] = await pool.query(
-      `select lh.MaLop , lh.ten_lop , lh.si_so , lh.MaHP 
+      `select lh.MaLop , lh.ten_lop , lh.si_so , lh.MaHP, lh.cover 
     from LopHoc lh
     join DangKyHocPhan dkhp on lh.MaLop = dkhp.MaLop 
     where dkhp.MaSV  = ?
