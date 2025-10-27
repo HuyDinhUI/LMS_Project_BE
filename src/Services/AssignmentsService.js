@@ -321,6 +321,27 @@ const getGrades = async (MaLop) => {
   }
 };
 
+const getAllDueSoonByStudent = async (MaSV) => {
+  try{
+    const [DueSoon] = await pool.query(
+      `
+      select DISTINCT bt.MaBaiTap , bt.TieuDe , bt.HanNop , bt.MaLop , lh.ten_lop, TIMESTAMPDIFF(HOUR, NOW(), bt.HanNop) as SoGioConLai
+      from BaiTap bt 
+      join LopHoc lh on lh.MaLop = bt.MaLop 
+      join DangKyHocPhan dkhp on dkhp.MaLop = lh.MaLop 
+      join SinhVien sv on sv.MaSV = dkhp.MaSV 
+      where bt.HanNop > NOW() and bt.HanNop <= DATE_ADD(NOW(), INTERVAL 3 DAY) and sv.MaSV = ?
+      ORDER BY bt.HanNop ASC
+      `
+      ,[MaSV]
+    )
+
+    return {data: DueSoon}
+  }
+  catch(err){
+    throw err
+  }
+}
 
 
 export const AssignmentsService = {
@@ -335,4 +356,5 @@ export const AssignmentsService = {
   getSubmissionByStudentAndAssignment,
   Scoring,
   getGrades,
+  getAllDueSoonByStudent
 };

@@ -7,7 +7,7 @@ const getAllAssignments = async (req, res) => {
       .status(200)
       .json({ message: "Lấy danh sách bài tập thành công", result });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -20,7 +20,7 @@ const getAssignmentById = async (req, res) => {
       .status(200)
       .json({ message: "Lấy thông tin bài tập thành công", result });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -61,7 +61,7 @@ const getListSubmited = async (req, res) => {
       .status(200)
       .json({ message: "Lấy danh sách nộp bài thành công", result });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -76,7 +76,7 @@ const getAssignmentByStudent = async (req, res) => {
       result,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -99,7 +99,7 @@ const getSubmissionByStudentAndAssignment = async (req, res) => {
       .status(200)
       .json({ message: "Lấy thông tin bài nộp thành công", result });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -121,7 +121,18 @@ const getGrades = async (req, res) => {
     const result = await AssignmentsService.getGrades(req.params.malop);
     res.status(200).json({ message: "Lấy bảng điểm thành công", result });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
+  }
+}
+
+const getAllDueSoonByStudent = async (req, res) => {
+  const masv = req.jwtDecoded.username
+  try{
+    const result = await AssignmentsService.getAllDueSoonByStudent(masv)
+    res.status(200).json({ message: "Lấy danh sách bài tập thành công", result });
+  }
+  catch(err) {
+    res.status(400).json({ message: error.message });
   }
 }
 
@@ -137,4 +148,5 @@ export const AssignmentsController = {
   getSubmissionByStudentAndAssignment,
   Scoring,
   getGrades,
+  getAllDueSoonByStudent
 };
