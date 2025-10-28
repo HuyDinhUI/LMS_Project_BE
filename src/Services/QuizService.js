@@ -80,7 +80,7 @@ const createQuiz = async (data) => {
     TongDiem,
     isRandom,
     SoLanChoPhep,
-    LoaiTracNghiem
+    LoaiTracNghiem,
   } = data;
 
   const connection = await pool.getConnection();
@@ -103,7 +103,7 @@ const createQuiz = async (data) => {
         HanNop,
         isRandom,
         SoLanChoPhep,
-        LoaiTracNghiem
+        LoaiTracNghiem,
       ]
     );
 
@@ -147,7 +147,22 @@ const submitQuiz = async (data) => {
     if (!MaTN || !MaSV || !Array.isArray(Answers)) {
       throw Error("Thiếu dữ liệu gửi lên");
     }
+
     await connection.beginTransaction();
+
+    const [isSubmited] = await connection.query(
+      `SELECT MabaiLam from BaiLamTracNghiem where MaSV = ? and MaTN = ?`,
+      [MaSV, MaTN]
+    );
+
+    const [type] = await connection.query(
+      `SELECT LoaiTracNghiem from TracNghiem where MaTN = ?`,
+      [MaTN]
+    );
+
+    if (type[0].LoaiTracNghiem === "test" && isSubmited.length > 0) {
+      throw Error("Bài này chỉ được phép làm một lần duy nhất!");
+    }
 
     const [questions] = await connection.query(
       `
@@ -179,12 +194,14 @@ const submitQuiz = async (data) => {
 
     const MaBaiLam = uuidv4();
 
-    const [insertResult] = await connection.query(
-      `INSERT INTO BaiLamTracNghiem (MaBaiLam,MaTN, MaSV, TongDiem, TrangThai, ThoiGianNop)
+    if (isSubmited.length === 0) {
+      const [insertResult] = await connection.query(
+        `INSERT INTO BaiLamTracNghiem (MaBaiLam,MaTN, MaSV, TongDiem, TrangThai, ThoiGianNop)
       VALUES (?,?,?, 0,'Đã hoàn thành',NOW())
       `,
-      [MaBaiLam, MaTN, MaSV]
-    );
+        [MaBaiLam, MaTN, MaSV]
+      );
+    }
 
     let totalScore = 0;
 
@@ -211,12 +228,25 @@ const submitQuiz = async (data) => {
 
       const MaChiTiet = uuidv4();
 
-      await connection.query(
-        `INSERT INTO ChiTietBaiLam (MaChiTiet, MaBaiLam, MaCauHoi, SelectedMaDapAn, Dung, Diem)
+      if (isSubmited.length === 0) {
+        await connection.query(
+          `INSERT INTO ChiTietBaiLam (MaChiTiet, MaBaiLam, MaCauHoi, SelectedMaDapAn, Dung, Diem)
         VALUES (?, ?, ?, ?, ?, ?)
         `,
-        [MaChiTiet, MaBaiLam, ans.MaCauHoi, SelectedMaDapAn, dung ? 1 : 0, scored]
-      );
+          [
+            MaChiTiet,
+            MaBaiLam,
+            ans.MaCauHoi,
+            SelectedMaDapAn,
+            dung ? 1 : 0,
+            scored,
+          ]
+        );
+      }
+    }
+
+    if (isSubmited.length > 0 && type[0].LoaiTracNghiem === "review") {
+      return { data: { MaBaiLam, TongDiem: totalScore } };
     }
 
     await connection.query(
@@ -236,9 +266,10 @@ const submitQuiz = async (data) => {
   }
 };
 
-const getQuizByStudent = async (MaSV,MaLop) => {
-  try{
-    const [quiz] = await pool.query(`
+const getQuizByStudent = async (MaSV, MaLop) => {
+  try {
+    const [quiz] = await pool.query(
+      `
       select distinct
       tn.MaTN,
       tn.TieuDe ,
@@ -267,16 +298,17 @@ const getQuizByStudent = async (MaSV,MaLop) => {
       left join BaiLamTracNghiem bltn on bltn.MaSV = sv.MaSV and bltn.MaTN = tn.MaTN 
       where sv.MaSV = ? and lh.MaLop = ?
       order by tn.NgayTao DESC
-      `,[MaSV,MaLop])
-    return {data: quiz}
+      `,
+      [MaSV, MaLop]
+    );
+    return { data: quiz };
+  } catch (err) {
+    throw err;
   }
-  catch(err){
-    throw err
-  }
-}
+};
 
 const getListSubmited = async (MaTN) => {
-  try{
+  try {
     const [submissions] = await pool.query(
       `
       select distinct
@@ -305,16 +337,15 @@ const getListSubmited = async (MaTN) => {
       left join BaiLamTracNghiem bltn on bltn.MaSV = sv.MaSV and bltn.MaTN = tn.MaTN 
       where tn.MaTN = ?
       order by tn.NgayTao DESC
-      `
-      ,[MaTN]
-    )
+      `,
+      [MaTN]
+    );
 
-    return {data: submissions}
+    return { data: submissions };
+  } catch (err) {
+    throw err;
   }
-  catch(err){
-    throw err
-  }
-}
+};
 
 const getGrades = async (MaLop) => {
   try {
@@ -381,5 +412,5 @@ export const QuizService = {
   submitQuiz,
   getQuizByStudent,
   getListSubmited,
-  getGrades
+  getGrades,
 };
