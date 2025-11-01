@@ -127,12 +127,13 @@ const getGrades = async (req, res) => {
 
 const getAllDueSoonByStudent = async (req, res) => {
   const masv = req.jwtDecoded.username
+  const {filter, page, limit} = req.query
   try{
-    const result = await AssignmentsService.getAllDueSoonByStudent(masv)
+    const result = await AssignmentsService.getAllDueSoonByStudent(masv,filter,page,limit)
     res.status(200).json({ message: "Lấy danh sách bài tập thành công", result });
   }
   catch(err) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: err.message });
   }
 }
 

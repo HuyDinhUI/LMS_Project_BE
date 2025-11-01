@@ -321,8 +321,38 @@ const getGrades = async (MaLop) => {
   }
 };
 
-const getAllDueSoonByStudent = async (MaSV) => {
-  try{
+const getAllDueSoonByStudent = async (MaSV, filter, page = 1, limit = 4) => {
+  try {
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 4;
+    const offset = (pageNum - 1) * limitNum;
+
+    let condition = "and 1=1";
+    let params = [];
+    if (filter === "Today") {
+      condition += " and bt.HanNop = NOW()";
+    }
+
+    if (filter === "Soon") {
+      condition +=
+        " and bt.HanNop > NOW() and bt.HanNop <= DATE_ADD(NOW(), INTERVAL 3 DAY)";
+    }
+
+    if (filter === "Due") {
+      condition += " and TIMESTAMPDIFF(HOUR, NOW(), bt.HanNop) < 0";
+    }
+
+    const [countRows] = await pool.query(
+      `
+      select DISTINCT(COUNT(bt.MaBaiTap)) as total
+      from BaiTap bt 
+      join LopHoc lh on lh.MaLop = bt.MaLop 
+      join DangKyHocPhan dkhp on dkhp.MaLop = lh.MaLop 
+      join SinhVien sv on sv.MaSV = dkhp.MaSV 
+      where sv.MaSV = ? ${condition}`,
+      [MaSV]
+    );
+
     const [DueSoon] = await pool.query(
       `
       select DISTINCT bt.MaBaiTap , bt.TieuDe , bt.HanNop , bt.MaLop , lh.ten_lop, TIMESTAMPDIFF(HOUR, NOW(), bt.HanNop) as SoGioConLai
@@ -330,19 +360,25 @@ const getAllDueSoonByStudent = async (MaSV) => {
       join LopHoc lh on lh.MaLop = bt.MaLop 
       join DangKyHocPhan dkhp on dkhp.MaLop = lh.MaLop 
       join SinhVien sv on sv.MaSV = dkhp.MaSV 
-      where bt.HanNop > NOW() and bt.HanNop <= DATE_ADD(NOW(), INTERVAL 3 DAY) and sv.MaSV = ?
-      ORDER BY bt.HanNop ASC
-      `
-      ,[MaSV]
-    )
+      where sv.MaSV = ? ${condition}
+      ORDER BY bt.HanNop ASC LIMIT ? OFFSET ?
+      `,
+      [MaSV, limitNum, offset]
+    );
 
-    return {data: DueSoon}
-  }
-  catch(err){
-    throw err
-  }
-}
+    const total = countRows[0].total;
 
+    return {
+      data: DueSoon,
+      total,
+      page: page,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+    };
+  } catch (err) {
+    throw err;
+  }
+};
 
 export const AssignmentsService = {
   getAllAssignments,
@@ -356,5 +392,5 @@ export const AssignmentsService = {
   getSubmissionByStudentAndAssignment,
   Scoring,
   getGrades,
-  getAllDueSoonByStudent
+  getAllDueSoonByStudent,
 };
