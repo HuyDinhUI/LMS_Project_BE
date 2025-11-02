@@ -14,6 +14,7 @@ import { UPLOAD_DIR_PATH } from "../../Middlewares/uploadMiddleware.js";
 import { AssignmentsRouter } from "./Assignments.js";
 import { QuizRouter } from "./Quiz.js";
 import { InboxRouter } from "./Inbox.js";
+import { StatisticalRouter } from "./Statistical.js";
 
 
 const Router = express.Router();
@@ -47,6 +48,8 @@ Router.use('/assignments',AssignmentsRouter)
 Router.use('/quiz',QuizRouter)
 
 Router.use('/inbox',InboxRouter)
+
+Router.use('/statistical',StatisticalRouter)
 
 export const APIs_v1 = Router
   

@@ -53,9 +53,10 @@ const deleteAssignment = async (req, res) => {
 };
 
 const getListSubmited = async (req, res) => {
+  const msgv = req.jwtDecoded.username
   try {
     const result = await AssignmentsService.getListSubmited(
-      req.params.mabaitap
+      req.params.mabaitap, msgv
     );
     res
       .status(200)
@@ -66,9 +67,10 @@ const getListSubmited = async (req, res) => {
 };
 
 const getAssignmentByStudent = async (req, res) => {
+  const masv = req.jwtDecoded.username
   try {
     const result = await AssignmentsService.getAssignmentByStudent(
-      req.params.masv,
+      masv,
       req.params.malop
     );
     res.status(200).json({
@@ -90,9 +92,10 @@ const Submited = async (req, res) => {
 };
 
 const getSubmissionByStudentAndAssignment = async (req, res) => {
+  const masv = req.jwtDecoded.username
   try {
     const result = await AssignmentsService.getSubmissionByStudentAndAssignment(
-      req.params.masv,
+      masv,
       req.params.mabaitap
     );
     res
@@ -117,8 +120,9 @@ const Scoring = async (req, res) => {
 };
 
 const getGrades = async (req, res) => {
+  const msgv = req.jwtDecoded.username
   try {
-    const result = await AssignmentsService.getGrades(req.params.malop);
+    const result = await AssignmentsService.getGrades(req.params.malop,msgv);
     res.status(200).json({ message: "Lấy bảng điểm thành công", result });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -130,6 +134,18 @@ const getAllDueSoonByStudent = async (req, res) => {
   const {filter, page, limit} = req.query
   try{
     const result = await AssignmentsService.getAllDueSoonByStudent(masv,filter,page,limit)
+    res.status(200).json({ message: "Lấy danh sách bài tập thành công", result });
+  }
+  catch(err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+const getAllDueSoonByTeacher = async (req, res) => {
+  const msgv = req.jwtDecoded.username
+  const {filter, page, limit} = req.query
+  try{
+    const result = await AssignmentsService.getAllDueSoonByTeacher(msgv,filter,page,limit)
     res.status(200).json({ message: "Lấy danh sách bài tập thành công", result });
   }
   catch(err) {
@@ -149,5 +165,6 @@ export const AssignmentsController = {
   getSubmissionByStudentAndAssignment,
   Scoring,
   getGrades,
-  getAllDueSoonByStudent
+  getAllDueSoonByStudent,
+  getAllDueSoonByTeacher
 };

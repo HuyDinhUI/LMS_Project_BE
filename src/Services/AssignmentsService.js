@@ -111,7 +111,7 @@ const deleteAssignment = async (MaBaiTap) => {
   }
 };
 
-const getListSubmited = async (MaBaiTap) => {
+const getListSubmited = async (MaBaiTap, MSGV) => {
   try {
     const [submissions] = await pool.query(
       `SELECT 
@@ -138,9 +138,9 @@ const getListSubmited = async (MaBaiTap) => {
       LEFT JOIN NopBai nb 
           ON nb.MaSV = sv.MaSV 
           AND nb.MaBaiTap = bt.MaBaiTap
-      WHERE bt.MaBaiTap = ?
+      WHERE bt.MaBaiTap = ? and lh.MSGV = ?
       ORDER BY bt.NgayTao DESC; `,
-      [MaBaiTap]
+      [MaBaiTap, MSGV]
     );
 
     return { data: submissions };
@@ -265,7 +265,7 @@ const Scoring = async (MaSV, MaBaiTap, Diem) => {
   }
 };
 
-const getGrades = async (MaLop) => {
+const getGrades = async (MaLop, MSGV) => {
   try {
     // lấy danh sách tiêu đề bài tập
     const [assignments] = await pool.query(
@@ -309,12 +309,12 @@ const getGrades = async (MaLop) => {
     LEFT JOIN NopBai nb 
       ON nb.MaSV = sv.MaSV 
       AND nb.MaBaiTap = bt.MaBaiTap
-    WHERE lh.MaLop = ?
+    WHERE lh.MaLop = ? and lh.MSGV = ?
     GROUP BY sv.MaSV, sv.hoten
     ORDER BY sv.MaSV;
   `;
 
-    const [grades] = await pool.query(sql, [MaLop]);
+    const [grades] = await pool.query(sql, [MaLop, MSGV]);
     return { data: grades };
   } catch (err) {
     throw err;
@@ -380,6 +380,61 @@ const getAllDueSoonByStudent = async (MaSV, filter, page = 1, limit = 4) => {
   }
 };
 
+const getAllDueSoonByTeacher = async (MSGV, filter, page = 1, limit = 4) => {
+  try {
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 4;
+    const offset = (pageNum - 1) * limitNum;
+
+    let condition = "and 1=1";
+    let params = [];
+    if (filter === "Today") {
+      condition += " and bt.HanNop = NOW()";
+    }
+
+    if (filter === "Soon") {
+      condition +=
+        " and bt.HanNop > NOW() and bt.HanNop <= DATE_ADD(NOW(), INTERVAL 3 DAY)";
+    }
+
+    if (filter === "Due") {
+      condition += " and TIMESTAMPDIFF(HOUR, NOW(), bt.HanNop) < 0";
+    }
+
+    const [countRows] = await pool.query(
+      `
+      select DISTINCT(COUNT(bt.MaBaiTap)) as total
+      from BaiTap bt 
+      join LopHoc lh on lh.MaLop = bt.MaLop 
+      where lh.MSGV = ? ${condition}`,
+      [MSGV]
+    );
+
+    const [DueSoon] = await pool.query(
+      `
+      select bt.MaBaiTap , bt.TieuDe , bt.HanNop , bt.MaLop , lh.ten_lop
+      from BaiTap bt 
+      join LopHoc lh on lh.MaLop = bt.MaLop 
+      where lh.MSGV = ? ${condition}
+      ORDER BY bt.HanNop ASC LIMIT ? OFFSET ?
+      `,
+      [MSGV, limitNum, offset]
+    );
+
+    const total = countRows[0].total;
+
+    return {
+      data: DueSoon,
+      total,
+      page: page,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+    };
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const AssignmentsService = {
   getAllAssignments,
   getAssignmentById,
@@ -393,4 +448,5 @@ export const AssignmentsService = {
   Scoring,
   getGrades,
   getAllDueSoonByStudent,
+  getAllDueSoonByTeacher
 };
