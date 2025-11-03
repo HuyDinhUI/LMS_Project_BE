@@ -29,7 +29,7 @@ const getAssignmentById = async (MaBaiTap) => {
 };
 
 const createAssignment = async (body, file) => {
-  const { NoiDung, MaLop, TieuDe, HanNop, GioNop, DiemToiDa } = body;
+  const { NoiDung, MaLop, TieuDe, HanNop, NgayBatDau, DiemToiDa } = body;
   const MaBaiTap = uuidv4();
 
   try {
@@ -37,7 +37,7 @@ const createAssignment = async (body, file) => {
       const filePath = `contents/${file.filename}`;
       const [assignment] = await pool.query(
         `INSERT INTO BaiTap 
-      (MaBaiTap, NoiDung,MaLop, TieuDe, HanNop, file_name, file_path, mime_type, original_name, size, NgayTao,GioNop,DiemToiDa) 
+      (MaBaiTap, NoiDung,MaLop, TieuDe, HanNop, file_name, file_path, mime_type, original_name, size, NgayTao,NgayBatDau,DiemToiDa) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(),?,?)`,
         [
           MaBaiTap,
@@ -50,7 +50,7 @@ const createAssignment = async (body, file) => {
           file.mimetype,
           Buffer.from(file.originalname, "latin1").toString("utf8"),
           file.size,
-          GioNop || null,
+          NgayBatDau || null,
           DiemToiDa || null,
         ]
       );
@@ -70,7 +70,7 @@ const createAssignment = async (body, file) => {
       };
     } else {
       const [assignment] = await pool.query(
-        `INSERT INTO BaiTap (MaBaiTap, NoiDung,MaLop, TieuDe, HanNop, NgayTao,GioNop,DiemToiDa) 
+        `INSERT INTO BaiTap (MaBaiTap, NoiDung,MaLop, TieuDe, HanNop, NgayTao,NgayBatDau,DiemToiDa) 
              VALUES (?, ?, ?, ?, ?, NOW())`,
         [
           MaBaiTap,
@@ -78,7 +78,7 @@ const createAssignment = async (body, file) => {
           MaLop,
           TieuDe,
           HanNop || null,
-          GioNop || null,
+          NgayBatDau || null,
           DiemToiDa || null,
         ]
       );
@@ -88,7 +88,7 @@ const createAssignment = async (body, file) => {
         MaLop,
         TieuDe,
         HanNop,
-        GioNop,
+        NgayBatDau,
         DiemToiDa,
       };
     }
@@ -97,8 +97,68 @@ const createAssignment = async (body, file) => {
   }
 };
 
-const updateAssignment = async (id, assignmentData) => {
-  // Logic to update an existing assignment
+const updateAssignment = async (data, file) => {
+  const { MaBaiTap, NoiDung, TieuDe, HanNop, NgayBatDau, DiemToiDa } = data;
+  try {
+    if (file) {
+      const filePath = `contents/${file.filename}`;
+      await pool.query(
+        `UPDATE BaiTap 
+          SET NoiDung = ?, TieuDe = ?, 
+          HanNop = ?, NgayBatDau = ?, 
+          DiemToiDa = ?, file_name = ?, 
+          file_path = ?, mime_type = ?, 
+          original_name = ?, size = ?
+          WHERE MaBaiTap = ?`,
+        [
+          NoiDung,
+          TieuDe,
+          HanNop,
+          NgayBatDau,
+          DiemToiDa,
+          file.filename,
+          filePath,
+          file.mimetype,
+          Buffer.from(file.originalname, "latin1").toString("utf8"),
+          file.size,
+          MaBaiTap,
+        ]
+      );
+
+      return {
+        MaBaiTap,
+        NoiDung,
+        TieuDe,
+        HanNop,
+        file: {
+          original_name: file.originalname,
+          file_name: file.filename,
+          mime_type: file.mimetype,
+          size: file.size,
+          path: filePath,
+        },
+      };
+    } else {
+      await pool.query(
+        `UPDATE BaiTap SET NoiDung = ?, TieuDe = ?, 
+        HanNop = ?, NgayBatDau = ?, 
+        DiemToiDa = ?
+        WHERE MaBaiTap = ?`,
+        [NoiDung, TieuDe, HanNop, NgayBatDau, DiemToiDa, MaBaiTap]
+      );
+
+      return {
+        MaBaiTap,
+        NoiDung,
+        TieuDe,
+        HanNop,
+        NgayBatDau,
+        DiemToiDa,
+      };
+    }
+  } catch (err) {
+    throw err;
+  }
 };
 
 const deleteAssignment = async (MaBaiTap) => {
@@ -448,5 +508,5 @@ export const AssignmentsService = {
   Scoring,
   getGrades,
   getAllDueSoonByStudent,
-  getAllDueSoonByTeacher
+  getAllDueSoonByTeacher,
 };

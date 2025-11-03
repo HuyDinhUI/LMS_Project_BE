@@ -1,3 +1,4 @@
+import { StatusCodes } from "http-status-codes";
 import { AssignmentsService } from "../Services/AssignmentsService.js";
 
 const getAllAssignments = async (req, res) => {
@@ -25,6 +26,13 @@ const getAssignmentById = async (req, res) => {
 };
 
 const createAssignment = async (req, res) => {
+  //kiểm tra quyền
+  if (req.jwtDecoded.role === "SV") {
+    res
+      .status(StatusCodes.FORBIDDEN)
+      .json({ message: "Bạn không có quyền tạo tài bài tập" });
+  }
+
   try {
     const result = await AssignmentsService.createAssignment(
       req.body,
@@ -33,12 +41,28 @@ const createAssignment = async (req, res) => {
     res.status(201).json({ message: "Tạo bài tập thành công", result });
   } catch (error) {
     console.error("Error creating assignment:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const updateAssignment = async (req, res) => {
-  // Logic to update an existing assignment
+  //kiểm tra quyền
+  if (req.jwtDecoded.role === "SV") {
+    res
+      .status(StatusCodes.FORBIDDEN)
+      .json({ message: "Bạn không có quyền tạo tài bài tập" });
+  }
+
+  try {
+    const result = await AssignmentsService.updateAssignment(
+      req.body,
+      req.file
+    );
+    res.status(201).json({ message: "Cập nhật bài tập thành công", result });
+  } catch (error) {
+    console.error("Error creating assignment:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 const deleteAssignment = async (req, res) => {
@@ -53,10 +77,11 @@ const deleteAssignment = async (req, res) => {
 };
 
 const getListSubmited = async (req, res) => {
-  const msgv = req.jwtDecoded.username
+  const msgv = req.jwtDecoded.username;
   try {
     const result = await AssignmentsService.getListSubmited(
-      req.params.mabaitap, msgv
+      req.params.mabaitap,
+      msgv
     );
     res
       .status(200)
@@ -67,7 +92,7 @@ const getListSubmited = async (req, res) => {
 };
 
 const getAssignmentByStudent = async (req, res) => {
-  const masv = req.jwtDecoded.username
+  const masv = req.jwtDecoded.username;
   try {
     const result = await AssignmentsService.getAssignmentByStudent(
       masv,
@@ -92,7 +117,7 @@ const Submited = async (req, res) => {
 };
 
 const getSubmissionByStudentAndAssignment = async (req, res) => {
-  const masv = req.jwtDecoded.username
+  const masv = req.jwtDecoded.username;
   try {
     const result = await AssignmentsService.getSubmissionByStudentAndAssignment(
       masv,
@@ -120,38 +145,50 @@ const Scoring = async (req, res) => {
 };
 
 const getGrades = async (req, res) => {
-  const msgv = req.jwtDecoded.username
+  const msgv = req.jwtDecoded.username;
   try {
-    const result = await AssignmentsService.getGrades(req.params.malop,msgv);
+    const result = await AssignmentsService.getGrades(req.params.malop, msgv);
     res.status(200).json({ message: "Lấy bảng điểm thành công", result });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
-}
+};
 
 const getAllDueSoonByStudent = async (req, res) => {
-  const masv = req.jwtDecoded.username
-  const {filter, page, limit} = req.query
-  try{
-    const result = await AssignmentsService.getAllDueSoonByStudent(masv,filter,page,limit)
-    res.status(200).json({ message: "Lấy danh sách bài tập thành công", result });
-  }
-  catch(err) {
+  const masv = req.jwtDecoded.username;
+  const { filter, page, limit } = req.query;
+  try {
+    const result = await AssignmentsService.getAllDueSoonByStudent(
+      masv,
+      filter,
+      page,
+      limit
+    );
+    res
+      .status(200)
+      .json({ message: "Lấy danh sách bài tập thành công", result });
+  } catch (err) {
     res.status(400).json({ message: err.message });
   }
-}
+};
 
 const getAllDueSoonByTeacher = async (req, res) => {
-  const msgv = req.jwtDecoded.username
-  const {filter, page, limit} = req.query
-  try{
-    const result = await AssignmentsService.getAllDueSoonByTeacher(msgv,filter,page,limit)
-    res.status(200).json({ message: "Lấy danh sách bài tập thành công", result });
-  }
-  catch(err) {
+  const msgv = req.jwtDecoded.username;
+  const { filter, page, limit } = req.query;
+  try {
+    const result = await AssignmentsService.getAllDueSoonByTeacher(
+      msgv,
+      filter,
+      page,
+      limit
+    );
+    res
+      .status(200)
+      .json({ message: "Lấy danh sách bài tập thành công", result });
+  } catch (err) {
     res.status(400).json({ message: err.message });
   }
-}
+};
 
 export const AssignmentsController = {
   getAllAssignments,
@@ -166,5 +203,5 @@ export const AssignmentsController = {
   Scoring,
   getGrades,
   getAllDueSoonByStudent,
-  getAllDueSoonByTeacher
+  getAllDueSoonByTeacher,
 };
