@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { pool } from "../Db/connection.js";
+import { fixFormDataNull } from "../Utils/normalize.js";
 
 const getAllAssignments = async (MaLop) => {
   try {
@@ -113,8 +114,8 @@ const updateAssignment = async (data, file) => {
         [
           NoiDung,
           TieuDe,
-          HanNop,
-          NgayBatDau,
+          fixFormDataNull(HanNop),
+          fixFormDataNull(NgayBatDau),
           DiemToiDa,
           file.filename,
           filePath,
@@ -144,7 +145,14 @@ const updateAssignment = async (data, file) => {
         HanNop = ?, NgayBatDau = ?, 
         DiemToiDa = ?
         WHERE MaBaiTap = ?`,
-        [NoiDung, TieuDe, HanNop, NgayBatDau, DiemToiDa, MaBaiTap]
+        [
+          NoiDung,
+          TieuDe,
+          fixFormDataNull(HanNop),
+          fixFormDataNull(NgayBatDau),
+          DiemToiDa,
+          MaBaiTap,
+        ]
       );
 
       return {
@@ -162,12 +170,20 @@ const updateAssignment = async (data, file) => {
 };
 
 const deleteAssignment = async (MaBaiTap) => {
+  const connection = await pool.getConnection();
   try {
-    await pool.query("DELETE FROM BaiTap WHERE MaBaiTap = ?", [MaBaiTap]);
+    await connection.beginTransaction();
 
+    await connection.query("DELETE FROM NopBai WHERE MaBaiTap = ?", [MaBaiTap]);
+    await connection.query("DELETE FROM BaiTap WHERE MaBaiTap = ?", [MaBaiTap]);
+
+    await connection.commit();
     return { MaBaiTap };
   } catch (err) {
+    await connection.rollback();
     throw err;
+  } finally {
+    connection.release();
   }
 };
 

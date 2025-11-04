@@ -10,7 +10,7 @@ Router.use(authMiddleware.isAuthozied)
 Router.route('/getAssignmentsByClass/:malop').get(AssignmentsController.getAllAssignments);
 Router.route('/getAssignmentById/:mabaitap').get(AssignmentsController.getAssignmentById);
 Router.route('/create').post(upload.single("file"),AssignmentsController.createAssignment);
-Router.route('/update/:id').put(AssignmentsController.updateAssignment);
+Router.route('/update').put(upload.single("file"),AssignmentsController.updateAssignment);
 Router.route('/delete/:mabaitap').delete(AssignmentsController.deleteAssignment);
 Router.route('/getListSubmited/:mabaitap').get(AssignmentsController.getListSubmited); 
 Router.route('/getAssignmentByStudent/:masv/:malop').get(AssignmentsController.getAssignmentByStudent);

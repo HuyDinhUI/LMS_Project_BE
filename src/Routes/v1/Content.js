@@ -10,4 +10,8 @@ Router.route('/getByOneClass/:malop').get(ContentController.getContentByOneClass
 
 Router.route('/delete/:manoidung').delete(ContentController.deleteContentById)
 
+Router.route('/getOneById/:manoidung').get(ContentController.getOneContentById)
+
+Router.route('/update').put(upload.single("file"),ContentController.updateContent)
+
 export const ContentRouter = Router
