@@ -17,4 +17,8 @@ Router.route('/getSubmissions/:matn').get(QuizController.getListSubmited)
 
 Router.route('/getGrades/:malop').get(QuizController.getGrades)
 
+Router.route('/delete/:matn').delete(QuizController.deleteQuiz)
+
+Router.route('/update').put(QuizController.updateQuiz)
+
 export const QuizRouter = Router

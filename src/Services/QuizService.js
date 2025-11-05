@@ -22,11 +22,17 @@ const getQuestionById = async (MaTN) => {
             q.MaTN ,
             q.TieuDe AS TieuDeQuiz,
             q.isRandom,
+            q.MoTa,
+            q.NgayBatDau,
+            q.HanNop,
+            q.LoaiTracNghiem,
+            q.ThoiGianLam,
             ch.MaCauHoi,
             ch.NoiDung AS NoiDungCauHoi,
             ch.Diem,
             da.MaDapAn,
-            da.NoiDung AS NoiDungDapAn
+            da.NoiDung AS NoiDungDapAn,
+            da.LaDapAnDung
             FROM TracNghiem q
             JOIN CauHoi ch ON q.MaTN  = ch.MaTN  
             JOIN DapAn da ON ch.MaCauHoi = da.MaCauHoi
@@ -40,6 +46,11 @@ const getQuestionById = async (MaTN) => {
       MaTN: MaTN,
       TieuDe: questions[0]?.TieuDeQuiz || "",
       isRandom: questions[0]?.isRandom,
+      MoTa: questions[0]?.MoTa,
+      NgayBatDau: questions[0]?.NgayBatDau,
+      HanNop: questions[0]?.HanNop,
+      LoaiTracNghiem: questions[0]?.LoaiTracNghiem,
+      ThoiGianLam: questions[0]?.ThoiGianLam,
       CauHoi: [],
     };
 
@@ -57,7 +68,7 @@ const getQuestionById = async (MaTN) => {
       map.get(r.MaCauHoi).DapAn.push({
         MaDapAn: r.MaDapAn,
         NoiDung: r.NoiDungDapAn,
-        LaDapAnDung: r.LaDapAnDung,
+        LaDapAnDung: r.LaDapAnDung === 1 ? true : false,
       });
     });
 
@@ -76,6 +87,7 @@ const createQuiz = async (data) => {
     MoTa,
     ThoiGianLam,
     HanNop,
+    NgayBatDau,
     CauHoi,
     TongDiem,
     isRandom,
@@ -91,8 +103,8 @@ const createQuiz = async (data) => {
     await connection.beginTransaction();
 
     await connection.query(
-      `Insert into TracNghiem (MaTN,MaLop,TieuDe,MoTa,ThoiGianLam,TongDiem,HanNop,NgayTao,isRandom,SoLanChoPhep,LoaiTracNghiem) 
-            VALUES (?,?,?,?,?,?,?,NOW(),?,?,?)`,
+      `Insert into TracNghiem (MaTN,MaLop,TieuDe,MoTa,ThoiGianLam,TongDiem,HanNop,NgayBatDau,NgayTao,isRandom,SoLanChoPhep,LoaiTracNghiem) 
+            VALUES (?,?,?,?,?,?,?,?,NOW(),?,?,?)`,
       [
         MaTN,
         MaLop,
@@ -101,6 +113,7 @@ const createQuiz = async (data) => {
         ThoiGianLam,
         TongDiem,
         HanNop,
+        NgayBatDau,
         isRandom,
         SoLanChoPhep,
         LoaiTracNghiem,
@@ -136,9 +149,100 @@ const createQuiz = async (data) => {
   }
 };
 
-const updateQuiz = async () => {};
+const updateQuiz = async (data) => {
+  const {
+    MaTN,
+    TieuDe,
+    MoTa,
+    ThoiGianLam,
+    HanNop,
+    NgayBatDau,
+    CauHoi,
+    TongDiem,
+    isRandom,
+    SoLanChoPhep,
+    LoaiTracNghiem,
+  } = data;
 
-const deleteQuiz = async () => {};
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    await connection.query(
+      `Update TracNghiem set TieuDe = ?, MoTa = ?, 
+      ThoiGianLam = ?, HanNop = ?,
+      NgayBatDau = ?, TongDiem = ?, isRandom = ?,
+      SoLanChoPhep = ?, LoaiTracNghiem = ? where MaTN = ?`,
+      [
+        TieuDe,
+        MoTa,
+        ThoiGianLam,
+        HanNop,
+        NgayBatDau,
+        TongDiem,
+        isRandom,
+        SoLanChoPhep,
+        LoaiTracNghiem,
+        MaTN,
+      ]
+    );
+
+    for (const ch of CauHoi) {
+      // kiểm tra câu hỏi đã có chưa, nếu chưa có thì tạo mới
+      const [isExistedCauHoi] = await connection.query(
+        `select MaCauHoi from CauHoi where MaCauHoi = ?`,
+        [ch.MaCauHoi]
+      );
+      if (isExistedCauHoi.length > 0) {
+        await connection.query(
+          `Update CauHoi set NoiDung = ?, Diem = ? where MaTN = ? and MaCauHoi = ?`,
+          [ch.NoiDung, TongDiem / CauHoi.length, MaTN, ch.MaCauHoi]
+        );
+      } else {
+        await connection.query(
+          `Insert into CauHoi (MaCauHoi, MaTN, NoiDung, Diem) VALUES (?,?,?,?)`,
+          [ch.MaCauHoi, MaTN, ch.NoiDung, TongDiem / CauHoi.length]
+        );
+      }
+
+      for (const da of ch.DapAn) {
+        const [isExistedDapAn] = await connection.query(
+          `select MaDapAn from DapAn where MaDapAn = ?`,
+          [da.MaDapAn]
+        );
+        if (isExistedDapAn.length > 0) {
+          await connection.query(
+            `Update DapAn set NoiDung = ?, LaDapAnDung = ? where MaDapAn = ? and MaCauHoi = ?`,
+            [da.NoiDung, da.LaDapAnDung, da.MaDapAn, ch.MaCauHoi]
+          );
+        } else {
+          await connection.query(
+            `Insert into DapAn (MaDapAn, MaCauHoi, NoiDung, LaDapAnDung) VALUES (?,?,?,?)`,
+            [da.MaDapAn, ch.MaCauHoi, da.NoiDung, da.LaDapAnDung]
+          );
+        }
+      }
+    }
+    await connection.commit();
+
+    return data;
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+};
+
+const deleteQuiz = async (MaTN) => {
+  try {
+    await pool.query("Delete from TracNghiem where MaTN = ?", [MaTN]);
+    return { MaTN };
+  } catch (err) {
+    throw err;
+  }
+};
 
 const submitQuiz = async (data) => {
   const { MaTN, MaSV, Answers } = data;

@@ -170,20 +170,12 @@ const updateAssignment = async (data, file) => {
 };
 
 const deleteAssignment = async (MaBaiTap) => {
-  const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
+    await pool.query("DELETE FROM BaiTap WHERE MaBaiTap = ?", [MaBaiTap]);
 
-    await connection.query("DELETE FROM NopBai WHERE MaBaiTap = ?", [MaBaiTap]);
-    await connection.query("DELETE FROM BaiTap WHERE MaBaiTap = ?", [MaBaiTap]);
-
-    await connection.commit();
     return { MaBaiTap };
   } catch (err) {
-    await connection.rollback();
     throw err;
-  } finally {
-    connection.release();
   }
 };
 
