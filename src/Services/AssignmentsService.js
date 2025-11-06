@@ -2,10 +2,27 @@ import { v4 as uuidv4 } from "uuid";
 import { pool } from "../Db/connection.js";
 import { fixFormDataNull } from "../Utils/normalize.js";
 
-const getAllAssignments = async (MaLop) => {
+const getAllAssignments = async (MaLop, filter) => {
   try {
+    let condition = ' and 1=1'
+
+    if (filter === "Today") {
+      condition += " and bt.HanNop = NOW()";
+    }
+
+    if (filter === "Soon") {
+      condition +=
+        " and bt.HanNop > NOW() and bt.HanNop <= DATE_ADD(NOW(), INTERVAL 3 DAY)";
+    }
+
+    if (filter === "Due") {
+      condition += " and TIMESTAMPDIFF(HOUR, NOW(), bt.HanNop) < 0";
+    }
+    
     const [assignments] = await pool.query(
-      "SELECT * FROM BaiTap where MaLop = ? ORDER BY NgayTao DESC",
+      `SELECT bt.* FROM BaiTap bt 
+      where bt.MaLop = ? ${condition}
+      ORDER BY NgayTao DESC`,
       [MaLop]
     );
     return { data: assignments };
@@ -217,15 +234,29 @@ const getListSubmited = async (MaBaiTap, MSGV) => {
   }
 };
 
-const getAssignmentByStudent = async (MaSV, MaLop) => {
+const getAssignmentByStudent = async (MaSV, MaLop, filter) => {
   try {
+    let condition = ' and 1=1'
+
+    if (filter === "Today") {
+      condition += " and bt.HanNop = NOW()";
+    }
+
+    if (filter === "Soon") {
+      condition +=
+        " and bt.HanNop > NOW() and bt.HanNop <= DATE_ADD(NOW(), INTERVAL 3 DAY)";
+    }
+
+    if (filter === "Due") {
+      condition += " and TIMESTAMPDIFF(HOUR, NOW(), bt.HanNop) < 0";
+    }
+
     const [assignments] = await pool.query(
       `SELECT 
       bt.MaBaiTap,
       bt.TieuDe,
       bt.NoiDung,
       bt.HanNop,
-      bt.GioNop,
       bt.DiemToiDa,
       bt.file_name,
       bt.file_path,
@@ -250,7 +281,7 @@ const getAssignmentByStudent = async (MaSV, MaLop) => {
       LEFT JOIN NopBai nb 
           ON nb.MaSV = sv.MaSV 
           AND nb.MaBaiTap = bt.MaBaiTap
-      WHERE sv.MaSV  = ? and lh.MaLop = ?
+      WHERE sv.MaSV  = ? and lh.MaLop = ? ${condition}
       ORDER BY bt.NgayTao DESC;`,
       [MaSV, MaLop]
     );

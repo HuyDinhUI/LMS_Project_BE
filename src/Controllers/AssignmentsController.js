@@ -2,8 +2,9 @@ import { StatusCodes } from "http-status-codes";
 import { AssignmentsService } from "../Services/AssignmentsService.js";
 
 const getAllAssignments = async (req, res) => {
+  const {filter} = req.query
   try {
-    const result = await AssignmentsService.getAllAssignments(req.params.malop);
+    const result = await AssignmentsService.getAllAssignments(req.params.malop, filter);
     res
       .status(200)
       .json({ message: "Lấy danh sách bài tập thành công", result });
@@ -93,10 +94,12 @@ const getListSubmited = async (req, res) => {
 
 const getAssignmentByStudent = async (req, res) => {
   const masv = req.jwtDecoded.username;
+  const {filter} = req.query
   try {
     const result = await AssignmentsService.getAssignmentByStudent(
       masv,
-      req.params.malop
+      req.params.malop,
+      filter
     );
     res.status(200).json({
       message: "Lấy thông tin bài tập của sinh viên thành công",

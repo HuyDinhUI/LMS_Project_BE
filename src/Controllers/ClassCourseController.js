@@ -56,8 +56,9 @@ const getOneClassCourse = async (req, res, next) => {
 };
 
 const getClassCourseByTeacher = async (req, res, next) => {
+  const {filter} = req.query
   try {
-    const result = await ClassCourseService.getClassCourseByTeacher(req.params.msgv)
+    const result = await ClassCourseService.getClassCourseByTeacher(req.params.msgv,filter)
 
     res.status(200).json({message: 'Lấy lớp học phần thành công',result})
   }
@@ -67,8 +68,9 @@ const getClassCourseByTeacher = async (req, res, next) => {
 }
 
 const getClassCourseByStudent = async (req, res, next) => {
+  const {filter} = req.query
   try{
-    const result = await ClassCourseService.getClassCourseByStudent(req.params.masv)
+    const result = await ClassCourseService.getClassCourseByStudent(req.params.masv,filter)
 
     res.status(200).json({message: 'Lấy danh sách lớp học thành công',result})
   }

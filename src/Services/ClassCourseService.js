@@ -187,10 +187,26 @@ const getOneClassCourse = async (Malop) => {
   }
 };
 
-const getClassCourseByTeacher = async (msgv) => {
+const getClassCourseByTeacher = async (msgv, filter) => {
   try {
+    let query = " and 1=1";
+    if (filter === "Openning") {
+      query += " and ld.ngay_kethuc > NOW()";
+    }
+
+    if (filter === "Close") {
+      query += " and ld.ngay_kethuc < NOW()";
+    }
+
+    if (filter === "Today") {
+      query += " and ld.ngay_day = NOW()";
+    }
     const [classCourse] = await pool.query(
-      "select * from LopHoc where MSGV = ?",
+      `select distinct lh.*, ld.ngay_kethuc, ld.ngay_batdau
+      from LopHoc lh
+      join LichDay ld on ld.MaLop = lh.MaLop
+      where lh.MSGV = ? ${query}
+      order by ld.ngay_batdau DESC`,
       [msgv]
     );
 
@@ -200,14 +216,28 @@ const getClassCourseByTeacher = async (msgv) => {
   }
 };
 
-const getClassCourseByStudent = async (masv) => {
+const getClassCourseByStudent = async (masv, filter) => {
   try {
+    let query = " and 1=1";
+    if (filter === "Openning") {
+      query += " and ld.ngay_kethuc > NOW()";
+    }
+
+    if (filter === "Close") {
+      query += " and ld.ngay_kethuc < NOW()";
+    }
+
+    if (filter === "Today") {
+      query += " and ld.ngay_day = NOW()";
+    }
+
     const [classCourse] = await pool.query(
-      `select lh.MaLop , lh.ten_lop , lh.si_so , lh.MaHP, lh.cover 
-    from LopHoc lh
-    join DangKyHocPhan dkhp on lh.MaLop = dkhp.MaLop 
-    where dkhp.MaSV  = ?
-    group by lh.MaLop`,
+      `select distinct lh.MaLop , lh.ten_lop , 
+      lh.si_so , lh.MaHP, lh.cover , ld.ngay_batdau, ld.ngay_kethuc
+      from LopHoc lh
+      join DangKyHocPhan dkhp on lh.MaLop = dkhp.MaLop
+      join LichDay ld on ld.MaLop = lh.MaLop 
+      where dkhp.MaSV  = ? ${query}`,
       [masv]
     );
 
@@ -218,20 +248,19 @@ const getClassCourseByStudent = async (masv) => {
 };
 
 const getMemberById = async (malop) => {
-  try{
+  try {
     const [members] = await pool.query(
       `SELECT sv.hoten as sinhvien, sv.MaSV
       from LopHoc lh 
       join DangKyHocPhan dkhp on lh.MaLop = dkhp.MaLop 
       join SinhVien sv on dkhp.MaSV = sv.MaSV 
-      where lh.MaLop = ?`
-      ,[malop]
-    )
+      where lh.MaLop = ?`,
+      [malop]
+    );
 
-    return {data:members}
-  }
-  catch (err) {
-    throw err
+    return { data: members };
+  } catch (err) {
+    throw err;
   }
 };
 
