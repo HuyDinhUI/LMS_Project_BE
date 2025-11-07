@@ -21,4 +21,6 @@ Router.route('/delete/:matn').delete(QuizController.deleteQuiz)
 
 Router.route('/update').put(QuizController.updateQuiz)
 
+Router.route('/detailSubmitted/:matn/:mabailam').get(QuizController.detailSubmitted)
+
 export const QuizRouter = Router

@@ -90,6 +90,16 @@ const updateQuiz = async (req, res) => {
     }
 }
 
+const detailSubmitted = async (req, res) => {
+    try{
+        const result = await QuizService.detailSubmitted(req.params.matn,req.params.mabailam)
+        res.status(200).json({message: 'Lấy danh sách chi tiết bài làm thành công',result})
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+}
+
 export const QuizController = {
     getQuizByClass,
     getQuestionById,
@@ -99,5 +109,6 @@ export const QuizController = {
     getListSubmited,
     getGrades,
     deleteQuiz,
-    updateQuiz
+    updateQuiz,
+    detailSubmitted
 }

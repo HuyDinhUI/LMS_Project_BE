@@ -15,6 +15,7 @@ import { AssignmentsRouter } from "./Assignments.js";
 import { QuizRouter } from "./Quiz.js";
 import { InboxRouter } from "./Inbox.js";
 import { StatisticalRouter } from "./Statistical.js";
+import { YoutubeRouter } from "./Youtube.js";
 
 
 const Router = express.Router();
@@ -50,6 +51,8 @@ Router.use('/quiz',QuizRouter)
 Router.use('/inbox',InboxRouter)
 
 Router.use('/statistical',StatisticalRouter)
+
+Router.use('/youtube',YoutubeRouter)
 
 export const APIs_v1 = Router
   

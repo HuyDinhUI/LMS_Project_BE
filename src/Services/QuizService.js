@@ -386,6 +386,7 @@ const getQuizByStudent = async (MaSV, MaLop) => {
       tn.ThoiGianLam ,
       tn.NgayTao ,
       tn.LoaiTracNghiem,
+      bltn.MaBaiLam,
       case 
         when bltn.MaSV is null and NOW() > tn.HanNop then 0
         else bltn.TongDiem  
@@ -507,6 +508,88 @@ const getGrades = async (MaLop) => {
   }
 };
 
+const detailSubmitted = async (MaTN, MaBaiLam) => {
+  try {
+    const [detail] = await pool.query(
+      `
+      SELECT 
+      q.MaTN ,
+      q.TieuDe AS TieuDeQuiz,
+      q.isRandom,
+      q.MoTa,
+      q.NgayBatDau,
+      q.HanNop,
+      q.LoaiTracNghiem,
+      q.ThoiGianLam,
+      ch.MaCauHoi,
+      ch.NoiDung AS NoiDungCauHoi,
+      ch.Diem,
+      da.MaDapAn,
+      da.NoiDung AS NoiDungDapAn,
+      da.LaDapAnDung,
+      CASE 
+      	when ctbl.SelectedMaDapAn IS NOT NULL THEN 1 ELSE 0
+      END as DaChon,
+      ctbl.Dung,
+      sv.MaSV,
+      sv.hoten,
+      bltn.TongDiem
+      FROM TracNghiem q
+      JOIN CauHoi ch ON q.MaTN  = ch.MaTN  
+      JOIN DapAn da ON ch.MaCauHoi = da.MaCauHoi
+      JOIN BaiLamTracNghiem bltn on bltn.MaTN = bltn.MaTN
+      JOIN SinhVien sv on sv.MaSV = bltn.MaSV 
+      left join ChiTietBaiLam ctbl on ctbl.SelectedMaDapAn = da.MaDapAn
+      WHERE q.MaTN  = ? and bltn.MaBaiLam = ?
+      ORDER BY ch.MaCauHoi, da.MaDapAn;
+      `,
+      [MaTN, MaBaiLam]
+    );
+
+    const quiz = {
+      MaTN: MaTN,
+      TieuDe: detail[0]?.TieuDeQuiz || "",
+      isRandom: detail[0]?.isRandom,
+      MoTa: detail[0]?.MoTa,
+      NgayBatDau: detail[0]?.NgayBatDau,
+      HanNop: detail[0]?.HanNop,
+      LoaiTracNghiem: detail[0]?.LoaiTracNghiem,
+      ThoiGianLam: detail[0]?.ThoiGianLam,
+      hoten: detail[0]?.hoten,
+      MaSV: detail[0]?.MaSV,
+      TongDiem: detail[0]?.TongDiem,
+      CauHoi: [],
+    }
+
+    const map = new Map()
+
+    detail.forEach((r) => {
+      if (!map.has(r.MaCauHoi)) {
+        map.set(r.MaCauHoi, {
+          MaCauHoi: r.MaCauHoi,
+          NoiDung: r.NoiDungCauHoi,
+          Diem: parseFloat(r.Diem),
+          DapAn: []
+        })
+      }
+      map.get(r.MaCauHoi).DapAn.push({
+        MaDapAn: r.MaDapAn,
+        NoiDung: r.NoiDungDapAn,
+        LaDapAnDung: r.LaDapAnDung === 1 ? true : false,
+        DaChon: r.DaChon === 1 ? true : false,
+        Dung: r.Dung === 1 ? true : false
+      })
+    })
+
+    quiz.CauHoi = Array.from(map.values())
+
+    return {data: quiz}
+
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const QuizService = {
   getQuizByClass,
   getQuestionById,
@@ -517,4 +600,5 @@ export const QuizService = {
   getQuizByStudent,
   getListSubmited,
   getGrades,
+  detailSubmitted
 };
