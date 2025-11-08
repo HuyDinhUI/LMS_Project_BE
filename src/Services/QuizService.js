@@ -386,6 +386,7 @@ const getQuizByStudent = async (MaSV, MaLop) => {
       tn.ThoiGianLam ,
       tn.NgayTao ,
       tn.LoaiTracNghiem,
+      tn.NgayBatDau,
       bltn.MaBaiLam,
       case 
         when bltn.MaSV is null and NOW() > tn.HanNop then 0

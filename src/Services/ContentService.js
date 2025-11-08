@@ -2,20 +2,33 @@ import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import { UPLOAD_DIR_PATH } from "../Middlewares/uploadMiddleware.js";
 import { pool } from "../Db/connection.js";
+import { fixFormDataNull } from "../Utils/normalize.js";
 
 const createContent = async (body, file) => {
-  const { tieu_de, MaLop, mota } = body;
+  const { tieu_de, MaLop, mota, id_youtube, title_youtube, thumbnail_youtube } = body;
+  const connection = await pool.getConnection();
   const MaNoiDung = uuidv4();
+  let filePath = ''
   try {
+    await connection.beginTransaction();
+
+    // Thêm nội dung
+    await connection.query(
+      `Insert into NoiDungHoc (MaNoiDung,tieu_de,MaLop,mota,ngay_tao) VALUES (?,?,?,?,NOW())`,
+      [MaNoiDung, tieu_de, MaLop, mota || null]
+    );
+
+    if (fixFormDataNull(id_youtube)) {
+      await connection.query(
+        `Insert into Youtube (id, title, thumbnail, MaNoiDung) VALUES (?,?,?,?)`,
+        [id_youtube, title_youtube, thumbnail_youtube, MaNoiDung]
+      );
+    }
+
     if (file) {
       const filePath = `contents/${file.filename}`;
-      // Thêm nội dung
-      const [content] = await pool.query(
-        `Insert into NoiDungHoc (MaNoiDung,tieu_de,MaLop,mota,ngay_tao) VALUES (?,?,?,?,NOW())`,
-        [MaNoiDung, tieu_de, MaLop, mota || null]
-      );
       // Thêm tài liệu
-      const [document] = await pool.query(
+      await connection.query(
         `Insert into TaiLieu (MaNoiDung,file_name, file_path, mime_type,original_name, size) VALUES (?,?,?,?,?,?)`,
         [
           MaNoiDung,
@@ -26,35 +39,33 @@ const createContent = async (body, file) => {
           file.size,
         ]
       );
-
-      return {
-        MaNoiDung,
-        tieu_de,
-        MaLop,
-        mota,
-        file: {
-          original_name: file.originalname,
-          file_name: file.filename,
-          mime_type: file.mimetype,
-          size: file.size,
-          path: filePath,
-        },
-      };
-    } else {
-      const [content] = await pool.query(
-        `Insert into NoiDungHoc (MaNoiDung,tieu_de,MaLop,mota,ngay_tao) VALUES (?,?,?,?,NOW())`,
-        [MaNoiDung, tieu_de, MaLop, mota || null]
-      );
-
-      return {
-        MaNoiDung,
-        tieu_de,
-        MaLop,
-        mota,
-      };
     }
+
+    await connection.commit();
+
+    return {
+      MaNoiDung,
+      tieu_de,
+      MaLop,
+      mota,
+      file: {
+        original_name: file?.originalname ?? null,
+        file_name: file?.filename ?? null,
+        mime_type: file?.mimetype ?? null,
+        size: file?.size ?? null,
+        path: filePath,
+      },
+      youtube: {
+        id: id_youtube ?? null,
+        title: title_youtube ?? null,
+        thumnnail: thumbnail_youtube ?? null,
+      },
+    };
   } catch (err) {
+    await connection.rollback();
     throw err;
+  } finally {
+    connection.release();
   }
 };
 
@@ -62,22 +73,25 @@ const getContentByOneClass = async (MaLop) => {
   try {
     const [content] = await pool.query(
       `
-            select ndh.MaNoiDung ,
-            MAX(ndh.tieu_de) as tieu_de,
-            MAX(ndh.mota) as mota,
-            MAX(ndh.huong_dan) as huong_dan,
-            MAX(gv.hoten) as hoten,
-            MAX(tl.file_name) as file_name,
-            MAX(tl.file_path) as file_path,
-            MAX(tl.mime_type) as mime_type,
-            MAX(tl.original_name) as original_name,
-            MAX(ndh.ngay_tao) as ngay_tao
+            select distinct ndh.MaNoiDung,
+            ndh.tieu_de,
+            ndh.mota,
+            ndh.huong_dan,
+            gv.hoten hoten,
+            tl.file_name,
+            tl.file_path,
+            tl.mime_type,
+            tl.original_name,
+            ndh.ngay_tao,
+            y.id as youtube_id,
+            y.title as youtube_title,
+            y.thumbnail
             from NoiDungHoc ndh 
             join LopHoc lh on ndh.MaLop = lh.MaLop
+            left join Youtube y on ndh.MaNoiDung = y.MaNoiDung
             left join TaiLieu tl on ndh.MaNoiDung = tl.MaNoiDung 
             join GiangVien gv on lh.MSGV = gv.MSGV 
             where ndh.MaLop = ?
-            group by ndh.MaNoiDung
             `,
       [MaLop]
     );
@@ -89,18 +103,12 @@ const getContentByOneClass = async (MaLop) => {
 };
 
 const deleteContentById = async (MaNoiDung) => {
-  const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
-    await pool.query("delete from TaiLieu where MaNoiDung = ?", [MaNoiDung]);
     await pool.query("delete from NoiDungHoc where MaNoiDung = ?", [MaNoiDung]);
-    await connection.commit();
     return { MaNoiDung };
   } catch (err) {
-    await connection.rollback();
     throw err;
   } finally {
-    connection.release();
   }
 };
 
@@ -116,9 +124,13 @@ const getOneContentById = async (MaNoiDung) => {
             tl.file_name,
             tl.file_path,
             tl.mime_type,
-            tl.original_name
+            tl.original_name,
+            y.id as youtube_id,
+            y.title as youtube_title,
+            y.thumbnail
             from NoiDungHoc ndh 
             join LopHoc lh on ndh.MaLop = lh.MaLop
+            left join Youtube y on ndh.MaNoiDung = y.MaNoiDung
             left join TaiLieu tl on ndh.MaNoiDung = tl.MaNoiDung 
             join GiangVien gv on lh.MSGV = gv.MSGV 
             where ndh.MaNoiDung = ?
@@ -194,5 +206,5 @@ export const ContentService = {
   getContentByOneClass,
   deleteContentById,
   getOneContentById,
-  updateContent
+  updateContent,
 };

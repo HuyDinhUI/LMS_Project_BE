@@ -1,11 +1,12 @@
 import express from "express";
-
+import http from "http";
 import "dotenv/config";
 import cookieParser from "cookie-parser";
 import { APIs_v1 } from "./src/Routes/v1/index.js";
 import cors from "cors"
 import { corsOptions } from "./src/config/corsOptions.js";
 import path from "path"
+import { initSocket } from "./src/sockets/index.js";
 
 
 const app = express()
@@ -29,8 +30,14 @@ const START_SERVER = () => {
 
   const PORT = process.env.PORT;
 
+  const server = http.createServer(app)
+
+  const io = initSocket(server)
+
+  app.set("io",io)
+
   // Start server
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log("🚀 Node LTI chạy tại http://localhost:4180");
   });
 };
