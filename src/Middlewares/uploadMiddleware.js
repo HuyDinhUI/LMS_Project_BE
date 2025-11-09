@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
 
-const allowedExt = [".pdf", ".doc", ".docx", ".ppt", ".pptx", ".zip", ".mp4",".jpg", ".jpeg", ".png"];
+const allowedExt = [".pdf", ".doc", ".docx", ".ppt", ".pptx", ".zip", ".mp4",".jpg", ".jpeg", ".png",".xlsx"];
 function fileFilter(req, file, cb) {
   const ext = path.extname(file.originalname).toLowerCase();
   if (!allowedExt.includes(ext)) {

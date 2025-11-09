@@ -100,6 +100,16 @@ const detailSubmitted = async (req, res) => {
     }
 }
 
+const importQuiz = async (req, res) => {
+    try{
+        const result = await QuizService.importQuiz(req.body, req.file)
+        res.status(200).json({message: 'Import trắc nghiệm thành công', result})
+    }
+    catch(err){
+        res.status(500).json({message: err.message})
+    }
+}
+
 export const QuizController = {
     getQuizByClass,
     getQuestionById,
@@ -110,5 +120,6 @@ export const QuizController = {
     getGrades,
     deleteQuiz,
     updateQuiz,
-    detailSubmitted
+    detailSubmitted,
+    importQuiz
 }

@@ -1,5 +1,7 @@
 import { pool } from "../Db/connection.js";
 import { v4 as uuidv4 } from "uuid";
+import XLSX from "xlsx";
+import fs from "fs";
 
 const getQuizByClass = async (MaLop) => {
   try {
@@ -591,6 +593,80 @@ const detailSubmitted = async (MaTN, MaBaiLam) => {
   }
 };
 
+const importQuiz = async (data,file) => {
+  const {
+    MaLop,
+    TieuDe,
+    MoTa,
+    ThoiGianLam,
+    HanNop,
+    NgayBatDau,
+    TongDiem,
+    isRandom,
+    SoLanChoPhep,
+    LoaiTracNghiem,
+  } = data;
+
+  const filePath = file.path
+  const connection = await pool.getConnection()
+  try{
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    const MaTN = uuidv4()
+
+    await connection.beginTransaction()
+
+    await connection.query(
+      `Insert into TracNghiem (MaTN,MaLop,TieuDe,MoTa,ThoiGianLam,TongDiem,HanNop,NgayBatDau,NgayTao,isRandom,SoLanChoPhep,LoaiTracNghiem) 
+            VALUES (?,?,?,?,?,?,?,?,NOW(),?,?,?)`,
+      [
+        MaTN,
+        MaLop,
+        TieuDe,
+        MoTa,
+        ThoiGianLam,
+        TongDiem,
+        HanNop,
+        NgayBatDau,
+        isRandom,
+        SoLanChoPhep,
+        LoaiTracNghiem,
+      ]
+    );
+
+    for (const row of sheet) {
+      const MaCauHoi = uuidv4();
+      await connection.query(
+        `Insert into CauHoi (MaCauHoi, MaTN, NoiDung, Diem)
+                VALUES (?,?,?,?)`,
+        [MaCauHoi, MaTN, row.CauHoi, TongDiem / sheet.length]
+      );
+
+      for (let i = 1; i <= 4; i++) {
+        const MaDapAn = uuidv4();
+        const NoiDung = row[`DapAn${i}`];
+        const LaDapAnDung = Number(row.DapAnDung) === i ? 1 : 0;
+        await connection.query(
+          `Insert into DapAn (MaDapAn, MaCauHoi, NoiDung, LaDapAnDung)
+                    VALUES (?,?,?,?)`,
+          [MaDapAn, MaCauHoi, NoiDung, LaDapAnDung]
+        );
+      }
+    }
+
+    fs.unlinkSync(filePath);
+
+    await connection.commit();
+
+    return {MaTN}
+  }
+  catch(err){
+    throw err
+  }
+}
+
 export const QuizService = {
   getQuizByClass,
   getQuestionById,
@@ -601,5 +677,6 @@ export const QuizService = {
   getQuizByStudent,
   getListSubmited,
   getGrades,
-  detailSubmitted
+  detailSubmitted,
+  importQuiz
 };
