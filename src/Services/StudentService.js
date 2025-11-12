@@ -56,93 +56,100 @@ const getAllStudent = async (
 };
 
 const getOneStudent = async (masv) => {
-    try{
-        const [student] = await pool.query("select *, k.ten_khoa,n.ten_nganh from SinhVien s join Khoa k on s.MaKhoa = k.MaKhoa join ChuyenNganh n on s.MaNganh = n.MaNganh where s.MaSV = ?",[masv])
+  try {
+    const [student] = await pool.query(
+      "select *, k.ten_khoa,n.ten_nganh from SinhVien s join Khoa k on s.MaKhoa = k.MaKhoa join ChuyenNganh n on s.MaNganh = n.MaNganh where s.MaSV = ?",
+      [masv]
+    );
 
-        if  (student.length === 0){
-            throw Error('Sinh viên không tồn tại')
-        }
+    if (student.length === 0) {
+      throw Error("Sinh viên không tồn tại");
+    }
 
-        return {data: student}
-    }
-    catch(err){
-        throw err
-    }
+    return { data: student };
+  } catch (err) {
+    throw err;
+  }
 };
 
 const createStudent = async (data) => {
-    const {hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa, MaNganh} = data
+  const { hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa, MaNganh } =
+    data;
+  const connection = await pool.getConnection();
 
-    try{
-        const MaSV = CreateMaSV(MaKhoa)
+  try {
+    await connection.beginTransaction();
+    const MaSV = CreateMaSV(MaKhoa);
 
-        const [mailExist] = await pool.query("select * from SinhVien where email = ?",[email])
+    const [mailExist] = await connection.query(
+      "select * from SinhVien where email = ?",
+      [email]
+    );
 
-        if (mailExist.length > 0){
-            throw Error('Email đã tồn tại')
-        }
-        
-        const [student] = await pool.query(
-            "Insert into SinhVien (MaSV,hoten,email,sdt,ngaysinh,gioitinh,MaLopHC,MaKhoa,MaNganh) VALUES (?,?,?,?,?,?,?,?,?)"
-            ,[MaSV,hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa,MaNganh]
-        )
-
-        const password = ngaysinh.replaceAll("-","")
-        
-
-        const [account] = await pool.query(
-            "Insert into Account_list (username,password,role) VALUES (?,?,?)"
-            ,[MaSV,password,"SV"]
-        )
-
-        return {
-            MaSV,
-            hoten,
-            email,
-            sdt,
-            ngaysinh,
-            gioitinh,
-            MaLopHC,
-            MaKhoa
-        }
+    if (mailExist.length > 0) {
+      throw Error("Email đã tồn tại");
     }
-    catch(err){
-        throw err
-    }
+
+    await connection.query(
+      "Insert into SinhVien (MaSV,hoten,email,sdt,ngaysinh,gioitinh,MaLopHC,MaKhoa,MaNganh) VALUES (?,?,?,?,?,?,?,?,?)",
+      [MaSV, hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa, MaNganh]
+    );
+
+    const password = ngaysinh.replaceAll("-", "");
+
+    await connection.query(
+      "Insert into Account_list (username,password,role,fullname) VALUES (?,?,?,?)",
+      [MaSV, password, "SV", hoten]
+    );
+
+    await connection.commit();
+
+    return {
+      MaSV,
+      hoten,
+      email,
+      sdt,
+      ngaysinh,
+      gioitinh,
+      MaLopHC,
+      MaKhoa,
+    };
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
 };
 
 const updateStudent = async (data) => {
-    const {MaSV, hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa} = data
+  const { MaSV, hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa } = data;
 
-    try{
-        const [student] = await pool.query(
-            "Update SinhVien set hoten = ?, email = ?, sdt = ?, ngaysinh = ?, gioitinh = ?, MaLopHC = ?, MaKhoa = ? where MaSV = ?"
-            ,[hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa, MaSV]
-        )
+  try {
+    const [student] = await pool.query(
+      "Update SinhVien set hoten = ?, email = ?, sdt = ?, ngaysinh = ?, gioitinh = ?, MaLopHC = ?, MaKhoa = ? where MaSV = ?",
+      [hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa, MaSV]
+    );
 
-        return {
-            MaSV,
-            hoten,
-            email,
-            sdt,
-            ngaysinh,
-            gioitinh,
-            MaLopHC,
-            MaKhoa
-        }
-    }
-    catch(err){
-        throw err
-    }
-
+    return {
+      MaSV,
+      hoten,
+      email,
+      sdt,
+      ngaysinh,
+      gioitinh,
+      MaLopHC,
+      MaKhoa,
+    };
+  } catch (err) {
+    throw err;
+  }
 };
 
-const deleteStudent = async () => {
-    
-};
+const deleteStudent = async () => {};
 
 const getSchedule = async (masv) => {
-  try{
+  try {
     const [schedule] = await pool.query(
       `select ld.MaLichDay , 
       MAX(ld.MaLop) AS MaLop,
@@ -158,15 +165,15 @@ const getSchedule = async (masv) => {
       join LopHoc lh on ld.MaLop  = lh.MaLop 
       join GiangVien gv on lh.MSGV = gv.MSGV 
       where dkhp.MaSV = ?
-      group by ld.MaLichDay`,[masv]
-    )
+      group by ld.MaLichDay`,
+      [masv]
+    );
 
-    return {data: schedule}
+    return { data: schedule };
+  } catch (err) {
+    throw err;
   }
-  catch(err){
-    throw err
-  }
-}
+};
 
 export const StudentService = {
   getAllStudent,
@@ -174,5 +181,5 @@ export const StudentService = {
   createStudent,
   updateStudent,
   deleteStudent,
-  getSchedule
+  getSchedule,
 };

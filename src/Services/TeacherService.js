@@ -57,9 +57,10 @@ const getAllTeacher = async (
 
 const getOneTeacher = async (msgv) => {
   try {
-    const [user] = await pool.query("SELECT *, k.ten_khoa FROM GiangVien gv join Khoa k on gv.MaKhoa = k.MaKhoa WHERE gv.MSGV = ?", [
-      msgv,
-    ]);
+    const [user] = await pool.query(
+      "SELECT *, k.ten_khoa FROM GiangVien gv join Khoa k on gv.MaKhoa = k.MaKhoa WHERE gv.MSGV = ?",
+      [msgv]
+    );
 
     return { data: user };
   } catch (err) {
@@ -82,11 +83,13 @@ const createTeacher = async (data) => {
     loaigiangvien,
     donvicongtac,
   } = data;
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
     const MSGV = CreateMSGV(loaigiangvien, MaKhoa);
 
     //check mail
-    const [mailExist] = await pool.query(
+    const [mailExist] = await connection.query(
       "SELECT * FROM GiangVien WHERE email = ?",
       [email]
     );
@@ -95,7 +98,7 @@ const createTeacher = async (data) => {
     }
 
     // create user
-    const [user] = await pool.query(
+    const [user] = await connection.query(
       "INSERT INTO GiangVien (MSGV, hoten, ngaysinh, sdt, diachi, email, gioitinh, MaKhoa, trinhdo, ngaytuyendung, trangthai, loai_giangvien, don_vi_cong_tac) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         MSGV,
@@ -116,14 +119,18 @@ const createTeacher = async (data) => {
 
     // create account
     const password = ngaysinh.replaceAll("-", "");
-    const [account] = await pool.query(
-      "INSERT INTO Account_List (password,role,username) VALUES (?,?,?)",
-      [password, "GV", MSGV]
+    await connection.query(
+      "INSERT INTO Account_List (password,role,username,fullname) VALUES (?,?,?,?)",
+      [password, "GV", MSGV, hoten]
     );
+    await connection.commit();
 
     return { id: user.insertId, user };
   } catch (err) {
+    await connection.rollback();
     throw err;
+  } finally {
+    connection.release();
   }
 };
 
@@ -175,37 +182,35 @@ const updateTeacher = async (data) => {
         trangthai,
         loai_giangvien,
         don_vi_cong_tac,
-        MSGV
+        MSGV,
       ]
     );
 
-    return {message: 'Update thành công'}
+    return { message: "Update thành công" };
   } catch (err) {
     throw err;
   }
 };
 
 const getSchedule = async (msgv) => {
-  try{
-    const [schedule] = await pool.query(`
+  try {
+    const [schedule] = await pool.query(
+      `
       select lh.MaLop, lh.ten_lop , lh.MaHK , lh.phonghoc , lh.si_so ,ld.ngay_day , ld.tiet_batdau ,ld.tiet_kethuc, gv.hoten, gv.MSGV, ld.MaLichDay, ld.TrangThai  
       from LopHoc lh 
       join LichDay ld on lh.MaLop = ld.MaLop
       join GiangVien gv on gv.MSGV = lh.MSGV
       where lh.MSGV   = ?
       group by ld.MaLop, ld.ngay_day , ld.tiet_batdau , ld.tiet_kethuc, ld.MaLichDay, ld.TrangThai
-      `,[msgv])
+      `,
+      [msgv]
+    );
 
-
-
-      return {data: schedule}
+    return { data: schedule };
+  } catch (err) {
+    throw err;
   }
-
-  
-  catch(err){
-    throw err
-  }
-}
+};
 
 export const TeacherService = {
   getAllTeacher,
@@ -213,5 +218,5 @@ export const TeacherService = {
   deleteTeacher,
   getOneTeacher,
   updateTeacher,
-  getSchedule
+  getSchedule,
 };

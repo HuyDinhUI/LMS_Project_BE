@@ -4,7 +4,7 @@ import { UPLOAD_DIR_PATH } from "../Middlewares/uploadMiddleware.js";
 import { pool } from "../Db/connection.js";
 import { fixFormDataNull } from "../Utils/normalize.js";
 
-const createContent = async (body, file) => {
+const createContent = async (body, file, userId) => {
   const { tieu_de, MaLop, mota, id_youtube, title_youtube, thumbnail_youtube } = body;
   const connection = await pool.getConnection();
   const MaNoiDung = uuidv4();
@@ -14,8 +14,8 @@ const createContent = async (body, file) => {
 
     // Thêm nội dung
     await connection.query(
-      `Insert into NoiDungHoc (MaNoiDung,tieu_de,MaLop,mota,ngay_tao) VALUES (?,?,?,?,NOW())`,
-      [MaNoiDung, tieu_de, MaLop, mota || null]
+      `Insert into NoiDungHoc (MaNoiDung,tieu_de,MaLop,mota,ngay_tao, userId) VALUES (?,?,?,?,NOW(),?)`,
+      [MaNoiDung, tieu_de, MaLop, mota || null,userId]
     );
 
     if (fixFormDataNull(id_youtube)) {
@@ -77,7 +77,6 @@ const getContentByOneClass = async (MaLop) => {
             ndh.tieu_de,
             ndh.mota,
             ndh.huong_dan,
-            gv.hoten hoten,
             tl.file_name,
             tl.file_path,
             tl.mime_type,
@@ -85,13 +84,16 @@ const getContentByOneClass = async (MaLop) => {
             ndh.ngay_tao,
             y.id as youtube_id,
             y.title as youtube_title,
-            y.thumbnail
+            y.thumbnail,
+            al.fullname as hoten,
+            al.username as userId
             from NoiDungHoc ndh 
             join LopHoc lh on ndh.MaLop = lh.MaLop
             left join Youtube y on ndh.MaNoiDung = y.MaNoiDung
             left join TaiLieu tl on ndh.MaNoiDung = tl.MaNoiDung 
-            join GiangVien gv on lh.MSGV = gv.MSGV 
+            join Account_List al on ndh.userId =  al.username
             where ndh.MaLop = ?
+            order by ndh.ngay_tao DESC
             `,
       [MaLop]
     );

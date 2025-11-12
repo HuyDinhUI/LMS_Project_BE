@@ -139,7 +139,8 @@ const Scoring = async (req, res) => {
     const result = await AssignmentsService.Scoring(
       req.body.MaSV,
       req.body.MaBaiTap,
-      req.body.Diem
+      req.body.Diem,
+      req.body.NhanXet
     );
     res.status(200).json({ message: "Chấm điểm thành công", result });
   } catch (error) {

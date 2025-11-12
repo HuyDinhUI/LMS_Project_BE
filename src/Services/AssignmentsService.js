@@ -4,7 +4,7 @@ import { fixFormDataNull } from "../Utils/normalize.js";
 
 const getAllAssignments = async (MaLop, filter) => {
   try {
-    let condition = ' and 1=1'
+    let condition = " and 1=1";
 
     if (filter === "Today") {
       condition += " and bt.HanNop = NOW()";
@@ -18,7 +18,7 @@ const getAllAssignments = async (MaLop, filter) => {
     if (filter === "Due") {
       condition += " and TIMESTAMPDIFF(HOUR, NOW(), bt.HanNop) < 0";
     }
-    
+
     const [assignments] = await pool.query(
       `SELECT bt.* FROM BaiTap bt 
       where bt.MaLop = ? ${condition}
@@ -211,6 +211,7 @@ const getListSubmited = async (MaBaiTap, MSGV) => {
       nb.thoigian_nop AS thoigian_nop,
       nb.diem AS DiemSo,
       nb.MaNopBai,
+      nb.NhanXet,
       CASE
           WHEN nb.MaSV IS NULL THEN 'Chưa nộp'
           WHEN nb.thoigian_nop > bt.HanNop THEN 'Nộp trễ'
@@ -236,7 +237,7 @@ const getListSubmited = async (MaBaiTap, MSGV) => {
 
 const getAssignmentByStudent = async (MaSV, MaLop, filter) => {
   try {
-    let condition = ' and 1=1'
+    let condition = " and 1=1";
 
     if (filter === "Today") {
       condition += " and bt.HanNop = NOW()";
@@ -349,15 +350,16 @@ const getSubmissionByStudentAndAssignment = async (MaSV, MaBaiTap) => {
   }
 };
 
-const Scoring = async (MaSV, MaBaiTap, Diem) => {
+const Scoring = async (MaSV, MaBaiTap, Diem, NhanXet) => {
+  console.log("Nhanxet:", NhanXet);
+  console.log("MaSV:", MaSV);
+  console.log("MaBaiTap:", MaBaiTap);
   try {
     const [result] = await pool.query(
-      "UPDATE NopBai SET diem = ? WHERE MaSV = ? and MaBaiTap = ?",
-      [Diem, MaSV, MaBaiTap]
+      "UPDATE NopBai SET diem = ? , NhanXet = ? WHERE MaSV = ? and MaBaiTap = ?",
+      [Diem, NhanXet, MaSV, MaBaiTap]
     );
-    if (result.affectedRows === 0) {
-      throw new Error("Không tìm thấy bài nộp để chấm điểm");
-    }
+
     return { MaBaiTap, MaSV, Diem };
   } catch (err) {
     throw err;
