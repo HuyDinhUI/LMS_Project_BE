@@ -7,7 +7,7 @@ const sendNotification = async (req, res) => {
   if (type === "user")
     io.to(`user_${targetId}`).emit("receive_notification", { message, title, create_at: new Date() });
   if (type === "class")
-    io.to(`class_${targetId}`).emit("receive_notification", { message });
+    io.to(`class_${targetId}`).emit("receive_notification", { message, title, create_at: new Date() });
 
   // TODO: lưu vào DB (Notification table)
   try{

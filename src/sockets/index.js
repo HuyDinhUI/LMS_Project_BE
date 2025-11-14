@@ -12,15 +12,24 @@ export const initSocket = (server) => {
     console.log("✅ User connected:", socket.id);
 
     // Khi client join
-    socket.on("join_room", ({ userId, classId }) => {
+    socket.on("join_room", ({ userId, classIds = [] }) => {
       if (userId) {
         userSockets.set(userId, socket.id);
         socket.join(`user_${userId}`);
       }
-      if (classId) {
-        socket.join(`class_${classId}`);
+      if (Array.isArray(classIds) && classIds.length > 0) {
+        classIds.forEach((classId) => {
+          socket.join(`class_${classId}`);
+        });
+        console.log(`📚 User ${userId} joined classes:`, classIds);
+      } else if (typeof classIds === "string") {
+        socket.join(`class_${classIds}`);
+        console.log(`📚 User ${userId} joined class: ${classIds}`);
       }
-      console.log(`User ${userId} joined rooms: user_${userId}, class_${classId}`);
+
+      console.log(
+        `User ${userId} joined rooms: user_${userId}, class_${classIds}`
+      );
     });
 
     // Đăng ký các event socket riêng

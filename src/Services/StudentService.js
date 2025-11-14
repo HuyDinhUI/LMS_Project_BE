@@ -10,7 +10,7 @@ const getAllStudent = async (
   limit = 10
 ) => {
   try {
-    // Parse page và limit sang số nguyên
+    
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
     const offset = (pageNum - 1) * limitNum;

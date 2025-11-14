@@ -15,7 +15,7 @@ export const registerNotificationHandlers = (io, socket) => {
       message,
       timestamp: new Date(),
     });
-    console.log(`📢 Gửi thông báo đến lớp ${classId}:`, message);
+    console.log(`Gửi thông báo đến lớp ${classId}:`, message);
   });
 
   // Khi gửi thông báo đến 1 cá nhân
@@ -28,9 +28,9 @@ export const registerNotificationHandlers = (io, socket) => {
         message,
         timestamp: new Date(),
       });
-      console.log(`📩 Gửi thông báo đến user ${userId}:`, message);
+      console.log(`Gửi thông báo đến user ${userId}:`, message);
     } else {
-      console.log(`⚠️ User ${userId} không online`);
+      console.log(`User ${userId} không online`);
     }
   });
 };

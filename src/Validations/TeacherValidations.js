@@ -6,7 +6,7 @@ const createTeacher = async (req, res, next) => {
     hoten: Joi.string().min(3).max(100).required(),
     email: Joi.string().email().required(),
     sdt: Joi.string()
-      .pattern(/^(0[1-9][0-9]{8})$/) // ví dụ regex số VN: 10 số, bắt đầu bằng 0x
+      .pattern(/^(0[1-9][0-9]{8})$/)
       .message("Số điện thoại không hợp lệ")
       .optional(),
     trinhdo: Joi.string().valid("Cử nhân", "Thạc sĩ", "Tiến sĩ").optional(),

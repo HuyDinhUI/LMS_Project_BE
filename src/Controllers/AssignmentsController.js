@@ -1,10 +1,12 @@
 import { StatusCodes } from "http-status-codes";
 import { AssignmentsService } from "../Services/AssignmentsService.js";
+import { NotificationService } from "../Services/NotificationService.js";
 
 const getAllAssignments = async (req, res) => {
   const {filter} = req.query
   try {
     const result = await AssignmentsService.getAllAssignments(req.params.malop, filter);
+    // console.log(result);
     res
       .status(200)
       .json({ message: "Lấy danh sách bài tập thành công", result });
@@ -39,6 +41,7 @@ const createAssignment = async (req, res) => {
       req.body,
       req.file
     );
+    await NotificationService.saveNotification('class', req.body.MaLop, 'Bài tập mới', req.body.TieuDe)
     res.status(201).json({ message: "Tạo bài tập thành công", result });
   } catch (error) {
     console.error("Error creating assignment:", error);
