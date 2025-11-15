@@ -4,10 +4,9 @@ import { AttendanceController } from "../../Controllers/AttendanceController.js"
  
 const Router = express.Router();
 
-Router.use(authMiddleware.isAuthozied);
-
-Router.route("/get/:malop").get(AttendanceController.getAttendanceByTeacher);
-Router.route("/student/get/:malop").get(AttendanceController.getAttendanceByStudent);
+Router.route("/start").post(authMiddleware.isAuthozied,AttendanceController.faceId)
+Router.route("/get/:malop").get(authMiddleware.isAuthozied,AttendanceController.getAttendanceByTeacher);
+Router.route("/student/get/:malop").get(authMiddleware.isAuthozied,AttendanceController.getAttendanceByStudent);
 Router.route("/record").post(AttendanceController.record);
 
 export const AttendanceRouter = Router;

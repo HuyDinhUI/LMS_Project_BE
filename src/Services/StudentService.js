@@ -4,6 +4,7 @@ import { CreateMaSV } from "../Utils/create_id.js";
 const getAllStudent = async (
   keyword,
   gioitinh,
+  Khoa,
   sortBy = "MaSV",
   order = "asc",
   page = 1,
@@ -21,6 +22,11 @@ const getAllStudent = async (
     if (keyword) {
       query += " AND (hoten LIKE ? OR email LIKE ?)";
       params.push(`%${keyword}%`, `%${keyword}%`);
+    }
+
+    if (Khoa) {
+      query += " AND MaKhoa = ?"
+      params.push(Khoa)
     }
 
     if (gioitinh) {

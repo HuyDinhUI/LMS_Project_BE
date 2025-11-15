@@ -1,4 +1,20 @@
 import { AttendanceService } from "../Services/AttendanceService.js";
+import { JwtProvider } from "../Utils/JwtProvider.js";
+
+
+const faceId = async (req, res) => {
+  const masv = req.jwtDecoded.username
+  const {MaLop, ngay_day } = req.body
+  const token = await JwtProvider.generateToken(
+    {masv,MaLop,ngay_day},
+    process.env.ACCESS_TOKEN_SECRET_SIGNATURE,
+    "2m"
+  )
+
+  res.json({
+    redirectUrl: `http://127.0.0.1:5001?token=${token}`
+  })
+}
 
 const getAttendanceByTeacher = async (req, res) => {
   try {
@@ -39,6 +55,7 @@ const record = async (req, res) => {
 }
 
 export const AttendanceController = {
+  faceId,
   getAttendanceByTeacher,
   getAttendanceByStudent,
   record

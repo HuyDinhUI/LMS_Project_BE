@@ -18,6 +18,7 @@ import { StatisticalRouter } from "./Statistical.js";
 import { YoutubeRouter } from "./Youtube.js";
 import {NotificationRouter} from "./Notification.js"
 import { AttendanceRouter } from "./Attendance.js";
+import { AccountRouter } from "./Account.js";
 
 
 const Router = express.Router();
@@ -27,6 +28,8 @@ Router.get("/status", (req, res) => {
 });
 
 Router.use('/auth', AuthRouter)
+
+Router.use('/account', AccountRouter)
 
 Router.use('/teacher',TeacherRouter)
 
