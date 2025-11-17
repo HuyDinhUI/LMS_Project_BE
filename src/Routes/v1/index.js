@@ -19,6 +19,7 @@ import { YoutubeRouter } from "./Youtube.js";
 import {NotificationRouter} from "./Notification.js"
 import { AttendanceRouter } from "./Attendance.js";
 import { AccountRouter } from "./Account.js";
+import { GroupRouter } from "./Group.js";
 
 
 const Router = express.Router();
@@ -62,6 +63,8 @@ Router.use('/youtube',YoutubeRouter)
 Router.use('/notification', NotificationRouter)
 
 Router.use('/attendance', AttendanceRouter);
+
+Router.use('/group', GroupRouter)
 
 export const APIs_v1 = Router
   

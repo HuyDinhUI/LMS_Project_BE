@@ -1,5 +1,6 @@
 import { pool } from "../Db/connection.js";
 import { CreateMaSV } from "../Utils/create_id.js";
+import bcrybt from "bcryptjs";
 
 const getAllStudent = async (
   keyword,
@@ -97,11 +98,14 @@ const createStudent = async (data) => {
     }
 
     await connection.query(
-      "Insert into SinhVien (MaSV,hoten,email,sdt,ngaysinh,gioitinh,MaLopHC,MaKhoa,MaNganh) VALUES (?,?,?,?,?,?,?,?,?)",
+      `Insert into SinhVien 
+      (MaSV,hoten,email,sdt,ngaysinh,gioitinh,MaLopHC,MaKhoa,MaNganh) 
+      VALUES (?,?,?,?,?,?,?,?,?)`,
       [MaSV, hoten, email, sdt, ngaysinh, gioitinh, MaLopHC, MaKhoa, MaNganh]
     );
 
-    const password = ngaysinh.replaceAll("-", "");
+    const password = await bcrybt.hash(ngaysinh.replaceAll("-", ""),10);
+
 
     await connection.query(
       "Insert into Account_list (username,password,role,fullname) VALUES (?,?,?,?)",

@@ -1,5 +1,6 @@
 import { pool } from "../Db/connection.js";
 import { CreateMSGV } from "../Utils/create_id.js";
+import bcrybt from "bcryptjs";
 
 const getAllTeacher = async (
   keyword,
@@ -118,7 +119,7 @@ const createTeacher = async (data) => {
     );
 
     // create account
-    const password = ngaysinh.replaceAll("-", "");
+    const password = await bcrybt.hash(ngaysinh.replaceAll("-", ""), 10);
     await connection.query(
       "INSERT INTO Account_List (password,role,username,fullname) VALUES (?,?,?,?)",
       [password, "GV", MSGV, hoten]

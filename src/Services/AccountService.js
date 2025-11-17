@@ -1,8 +1,10 @@
 import { pool } from "../Db/connection.js";
+import bcrybt, { hash } from "bcryptjs";
 
 const getAllAccount = async (
   keyword,
   status,
+  role,
   sortBy = "username",
   order = "asc",
   page = 1,
@@ -24,6 +26,11 @@ const getAllAccount = async (
     if (status) {
       query += " AND status = ?";
       params.push(status);
+    }
+
+    if (role) {
+      query += " AND role = ?";
+      params.push(role);
     }
 
     const validSort = ["username", "fullname"];
@@ -53,6 +60,22 @@ const getAllAccount = async (
   }
 };
 
+const updatePassword = async (newPassword, username) => {
+  try {
+    const passwordHash = bcrybt.hash(newPassword, 10)
+    await pool.query(
+      "Update Account_List set password = ? where username = ?"
+    ,[passwordHash, username]
+  );
+
+  return {username}
+
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const AccountService = {
-    getAllAccount
+  getAllAccount,
+  updatePassword
 };

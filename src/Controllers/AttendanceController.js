@@ -1,20 +1,20 @@
 import { AttendanceService } from "../Services/AttendanceService.js";
 import { JwtProvider } from "../Utils/JwtProvider.js";
-
+import { NotificationService } from "../Services/NotificationService.js";
 
 const faceId = async (req, res) => {
-  const masv = req.jwtDecoded.username
-  const {MaLop, ngay_day } = req.body
+  const masv = req.jwtDecoded.username;
+  const { MaLop, ngay_day } = req.body;
   const token = await JwtProvider.generateToken(
-    {masv,MaLop,ngay_day},
+    { masv, MaLop, ngay_day },
     process.env.ACCESS_TOKEN_SECRET_SIGNATURE,
     "2m"
-  )
+  );
 
   res.json({
-    redirectUrl: `http://127.0.0.1:5001?token=${token}`
-  })
-}
+    redirectUrl: `${process.env.URI_FACEID}?token=${token}`,
+  });
+};
 
 const getAttendanceByTeacher = async (req, res) => {
   try {
@@ -46,17 +46,23 @@ const getAttendanceByStudent = async (req, res) => {
 
 const record = async (req, res) => {
   const { MaLop, MaSV, status, ngay_day } = req.body;
+  const io = req.app.get("io");
   try {
     await AttendanceService.record(MaSV, MaLop, status, ngay_day);
+    io.to(`user_${MaSV}`).emit("receive_notification", {
+      message: `You have successfully taken attendance for ${MaLop}`,
+      title: "Attendance",
+      create_at: new Date(),
+    });
     res.status(200).json({ message: "Cập nhật điểm danh thành công" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-}
+};
 
 export const AttendanceController = {
   faceId,
   getAttendanceByTeacher,
   getAttendanceByStudent,
-  record
+  record,
 };

@@ -1,6 +1,7 @@
 import {pool} from "../Db/connection.js"
 import { JwtProvider } from "../Utils/JwtProvider.js"
 import 'dotenv/config'
+import bcrybt from "bcryptjs";
 
 const ACCESS_TOKEN_SECRET_SIGNATURE = process.env.ACCESS_TOKEN_SECRET_SIGNATURE;
 const REFRESH_TOKEN_SECRET_SIGNATURE = process.env.REFRESH_TOKEN_SECRET_SIGNATURE;
@@ -13,10 +14,17 @@ const Login = async (username, password) => {
             throw Error('Username không tồn tại')
         }
 
-        if(user[0].password !== password){
+        if (user[0].status === 'lock') {
+            throw Error('Tài khoản đã bị khoá')
+        }
+
+        const isMatchPassword = await bcrybt.compare(password,user[0].password)
+
+        if(!isMatchPassword){
             throw Error('Mật khẩu không chính xác')
         }
 
+        
         const userInfo = {
             username: user[0].username,
             role: user[0].role

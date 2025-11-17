@@ -34,7 +34,7 @@ const getSchedule = async (
     const total = countRows[0].total;
 
     const [rows] = await pool.query(
-      `select ld.MaLichDay , ld.ngay_day, ld.tiet_batdau ,ld.tiet_kethuc ,lh.phonghoc ,gv.MSGV as giangvien, hp.ten_hocphan , lh.ten_lop, lh.MaLop ${query} ORDER BY ${sortCol} ${sortOrder} LIMIT ? OFFSET ?`,
+      `select ld.MaLichDay , ld.ngay_day, ld.tiet_batdau ,ld.tiet_kethuc,ld.TrangThai ,lh.phonghoc ,gv.MSGV as giangvien, hp.ten_hocphan , lh.ten_lop, lh.MaLop ${query} ORDER BY ${sortCol} ${sortOrder} LIMIT ? OFFSET ?`,
       [...params, limitNum, offset]
     );
     return {
