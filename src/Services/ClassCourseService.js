@@ -250,7 +250,7 @@ const getClassCourseByStudent = async (masv, filter) => {
 const getMemberById = async (malop) => {
   try {
     const [members] = await pool.query(
-      `SELECT sv.hoten as sinhvien, sv.MaSV
+      `SELECT sv.hoten as sinhvien, sv.MaSV, sv.avatar
       from LopHoc lh 
       join DangKyHocPhan dkhp on lh.MaLop = dkhp.MaLop 
       join SinhVien sv on dkhp.MaSV = sv.MaSV 

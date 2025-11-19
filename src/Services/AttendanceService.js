@@ -81,9 +81,9 @@ const getAttendanceByStudent = async (MaLop,MaSV) => {
 const record = async (MaSV, MaLop, status, ngay_day) => {
     
     try{
-        // if (new Date(ngay_day).toDateString() !== new Date().toDateString()){
-        //     throw new Error("Chỉ được điểm danh trong ngày học")
-        // }
+        if (new Date(ngay_day).toDateString() !== new Date().toDateString()){
+            throw new Error("Chỉ được điểm danh trong ngày học")
+        }
         if (status){
             await pool.query(
                 `INSERT INTO DiemDanh (MaSV, MaLop, ThoiGian) VALUES (?, ?, ?)`,
@@ -91,8 +91,8 @@ const record = async (MaSV, MaLop, status, ngay_day) => {
             )
         } else {
             await pool.query(
-                `DELETE FROM DiemDanh WHERE MaSV = ? AND MaLop = ?`,
-                [MaSV, MaLop]
+                `DELETE FROM DiemDanh WHERE MaSV = ? AND MaLop = ? AND ThoiGian = ?`,
+                [MaSV, MaLop, ngay_day]
             )
         }
     }
