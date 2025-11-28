@@ -96,6 +96,7 @@ const getAllMessageByStudent = async (MaSV, MaThread) => {
             lh.ten_lop, 
             lh.cover,
             COALESCE(sv.hoten, gv.hoten) AS hoten,
+            COALESCE(sv.avatar, gv.avatar) AS avatar,
             CASE 
             WHEN sv.MaSV IS NOT NULL THEN 'SV' 
             WHEN gv.MSGV IS NOT NULL THEN 'GV' 
@@ -125,6 +126,7 @@ const getAllMessageByTeacher = async (msgv, MaThread) => {
             `
             SELECT im.*, t.MaLop, lh.ten_lop , lh.cover,
             COALESCE(sv.hoten, gv.hoten) AS hoten,
+            COALESCE(sv.avatar, gv.avatar) AS avatar,
             CASE 
             WHEN sv.MaSV IS NOT NULL THEN 'SV' 
             WHEN gv.MSGV IS NOT NULL THEN 'GV' 

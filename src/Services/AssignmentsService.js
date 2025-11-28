@@ -401,8 +401,7 @@ const getGrades = async (MaLop, MSGV) => {
     SELECT 
       sv.MaSV,
       sv.hoten,
-      ${pivotColumns},
-      ROUND(AVG(nb.diem), 2) AS 'Trung bình'
+      ${pivotColumns}
     FROM BaiTap bt
     JOIN LopHoc lh ON bt.MaLop = lh.MaLop
     JOIN DangKyHocPhan dkhp ON dkhp.MaLop = lh.MaLop

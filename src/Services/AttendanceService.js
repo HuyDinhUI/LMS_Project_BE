@@ -57,7 +57,9 @@ const getAttendanceByStudent = async (MaLop,MaSV) => {
             `
             select sv.MaSV , sv.hoten , ld.ngay_day,
             CASE
-                when dd.MaSV IS NOT NULL THEN 1 ELSE 0
+                when dd.MaSV IS NOT NULL THEN 'Present' 
+                when NOW() > ld.ngay_day THEN 'Absent'
+                else '-'
             END as DaDiemDanh
             from LichDay ld 
             join LopHoc lh on lh.MaLop = ld.MaLop
@@ -84,7 +86,18 @@ const record = async (MaSV, MaLop, status, ngay_day) => {
         if (new Date(ngay_day).toDateString() !== new Date().toDateString()){
             throw new Error("Chỉ được điểm danh trong ngày học")
         }
+        
         if (status){
+            const [records] = await pool.query(
+                `SELECT * FROM DiemDanh 
+                WHERE MaLop = ? AND MaSV = ? AND ThoiGian = ?
+                `,[MaLop, MaSV, ngay_day]
+            )
+
+            if (records.length > 0) {
+                throw new Error("Bạn đã điểm danh buổi học này")
+            }
+
             await pool.query(
                 `INSERT INTO DiemDanh (MaSV, MaLop, ThoiGian) VALUES (?, ?, ?)`,
                 [MaSV, MaLop, ngay_day]

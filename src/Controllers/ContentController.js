@@ -3,7 +3,7 @@ import { ContentService } from "../Services/ContentService.js"
 const createContent = async (req, res, next) => {
     const userId = req.jwtDecoded.username
     try{
-        const result = await ContentService.createContent(req.body,req.file, userId)
+        const result = await ContentService.createContent(req.body,req.files, userId)
         res.status(201).json({message: 'Tạo nội dung thành công',result})
     }
     catch(err){

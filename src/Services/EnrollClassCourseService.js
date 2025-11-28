@@ -141,20 +141,8 @@ const getErolledCourseById = async (MaSV) => {
 
 const CancleEnrollCourse = async (MaSV,MaLop, MaHP) => {
   try{
-    // lấy số lượng đăng ký hiện tại
-    const [sl_dangky] = await pool.query("select sl_dangky from LopHoc where MaLop = ?",[MaLop])
-    
-    // xoá lớp học phần khỏi bảng dangkyhocphan
-    await pool.query("delete from DangKyHocPhan where MaSV = ? and MaLop = ?",[MaSV, MaLop])
 
-    // giảm số lượng đăng ký
-    await pool.query("update LopHoc set sl_dangky = ? where MaLop = ?",[sl_dangky[0].sl_dangky - 1, MaLop])
-
-    // xoá bảng điểm
-    await pool.query('delete from BangDiem where MaSV = ? and MaHP = ?',[MaSV,MaHP])
-
-    // xoá công nợ
-    await pool.query('delete from CongNo where MaSV = ? and MaLop = ?',[MaSV,MaLop])
+    throw Error('Hiện tại không thể huỷ học phần!')
 
     return {
       MaSV,

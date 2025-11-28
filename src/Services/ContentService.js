@@ -1,21 +1,19 @@
 import { v4 as uuidv4 } from "uuid";
-import path from "path";
-import { UPLOAD_DIR_PATH } from "../Middlewares/uploadMiddleware.js";
 import { pool } from "../Db/connection.js";
 import { fixFormDataNull } from "../Utils/normalize.js";
 
 const createContent = async (body, file, userId) => {
-  const { tieu_de, MaLop, mota, id_youtube, title_youtube, thumbnail_youtube } = body;
+  const { tieu_de, MaLop, mota, id_youtube, title_youtube, thumbnail_youtube } =
+    body;
   const connection = await pool.getConnection();
   const MaNoiDung = uuidv4();
-  let filePath = ''
   try {
     await connection.beginTransaction();
 
     // Thêm nội dung
     await connection.query(
       `Insert into NoiDungHoc (MaNoiDung,tieu_de,MaLop,mota,ngay_tao, userId) VALUES (?,?,?,?,NOW(),?)`,
-      [MaNoiDung, tieu_de, MaLop, mota || null,userId]
+      [MaNoiDung, tieu_de, MaLop, mota || null, userId]
     );
 
     if (fixFormDataNull(id_youtube)) {
@@ -26,19 +24,21 @@ const createContent = async (body, file, userId) => {
     }
 
     if (file) {
-      const filePath = `contents/${file.filename}`;
-      // Thêm tài liệu
-      await connection.query(
-        `Insert into TaiLieu (MaNoiDung,file_name, file_path, mime_type,original_name, size) VALUES (?,?,?,?,?,?)`,
-        [
-          MaNoiDung,
-          file.filename,
-          filePath,
-          file.mimetype,
-          Buffer.from(file.originalname, "latin1").toString("utf8"),
-          file.size,
-        ]
-      );
+      file.forEach(async (f) => {
+        const filePath = `contents/${f.filename}`;
+        // Thêm tài liệu
+        await connection.query(
+          `Insert into TaiLieu (MaNoiDung,file_name, file_path, mime_type,original_name, size) VALUES (?,?,?,?,?,?)`,
+          [
+            MaNoiDung,
+            f.filename,
+            filePath,
+            f.mimetype,
+            Buffer.from(f.originalname, "latin1").toString("utf8"),
+            f.size,
+          ]
+        );
+      });
     }
 
     await connection.commit();
@@ -48,18 +48,6 @@ const createContent = async (body, file, userId) => {
       tieu_de,
       MaLop,
       mota,
-      file: {
-        original_name: file?.originalname ?? null,
-        file_name: file?.filename ?? null,
-        mime_type: file?.mimetype ?? null,
-        size: file?.size ?? null,
-        path: filePath,
-      },
-      youtube: {
-        id: id_youtube ?? null,
-        title: title_youtube ?? null,
-        thumnnail: thumbnail_youtube ?? null,
-      },
     };
   } catch (err) {
     await connection.rollback();
@@ -98,7 +86,43 @@ const getContentByOneClass = async (MaLop) => {
       [MaLop]
     );
 
-    return { data: content };
+    const map = new Map();
+
+    content.forEach((c) => {
+      if (!map.has(c.MaNoiDung)) {
+        map.set(c.MaNoiDung, {
+          MaNoiDung: c.MaNoiDung,
+          tieu_de: c.tieu_de,
+          mota: c.mota,
+          huong_dan: c.huong_dan,
+          ngay_tao: c.ngay_tao,
+          files: [],
+          create_by: {
+            hoten: c.hoten,
+            userId: c.userId,
+          },
+          videos: [],
+        });
+      }
+      if (c.file_name) {
+        map.get(c.MaNoiDung).files.push({
+          file_name: c.file_name,
+          file_path: c.file_path,
+          mime_type: c.mime_type,
+          original_name: c.original_name,
+        });
+      }
+
+      if (c.youtube_id) {
+        map.get(c.MaNoiDung).videos.push({
+          youtube_id: c.youtube_id,
+          youtube_title: c.youtube_title,
+          thumbnail: c.thumbnail,
+        });
+      }
+    });
+    
+    return { data: Array.from(map.values()) };
   } catch (err) {
     throw err;
   }
@@ -140,7 +164,43 @@ const getOneContentById = async (MaNoiDung) => {
       [MaNoiDung]
     );
 
-    return { data: content[0] };
+    const map = new Map();
+
+    content.forEach((c) => {
+      if (!map.has(c.MaNoiDung)) {
+        map.set(c.MaNoiDung, {
+          MaNoiDung: c.MaNoiDung,
+          tieu_de: c.tieu_de,
+          mota: c.mota,
+          huong_dan: c.huong_dan,
+          ngay_tao: c.ngay_tao,
+          files: [],
+          create_by: {
+            hoten: c.hoten,
+            userId: c.userId,
+          },
+          videos: [],
+        });
+      }
+      if (c.file_name) {
+        map.get(c.MaNoiDung).files.push({
+          file_name: c.file_name,
+          file_path: c.file_path,
+          mime_type: c.mime_type,
+          original_name: c.original_name,
+        });
+      }
+
+      if (c.youtube_id) {
+        map.get(c.MaNoiDung).videos.push({
+          youtube_id: c.youtube_id,
+          youtube_title: c.youtube_title,
+          thumbnail: c.thumbnail,
+        });
+      }
+    });
+
+    return { data: Array.from(map.values())[0] };
   } catch (err) {
     throw err;
   }
@@ -173,22 +233,9 @@ const updateContent = async (data, file) => {
           MaNoiDung,
         ]
       );
-
-      await connection.commit();
-
-      return {
-        MaNoiDung,
-        tieu_de,
-        mota,
-        file: {
-          original_name: file.originalname,
-          file_name: file.filename,
-          mime_type: file.mimetype,
-          size: file.size,
-          path: filePath,
-        },
-      };
     }
+
+    await connection.commit();
 
     return {
       MaNoiDung,

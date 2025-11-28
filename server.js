@@ -24,6 +24,7 @@ const START_SERVER = () => {
   app.use(cors(corsOptions));
 
   const __dirname = path.resolve();
+  
   app.use("/contents", express.static(path.join(__dirname, "contents")));
 
   app.use("/v1", APIs_v1);
@@ -38,7 +39,7 @@ const START_SERVER = () => {
 
   // Start server
   server.listen(PORT, () => {
-    console.log("🚀 Node LTI chạy tại http://localhost:4180");
+    console.log(`🚀 Node LTI chạy tại http://localhost:${PORT}`);
   });
 };
 

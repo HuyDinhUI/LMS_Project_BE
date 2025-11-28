@@ -7,7 +7,7 @@ const Router = express.Router()
 
 Router.use(authMiddleware.isAuthozied)
 
-Router.route('/create').post(upload.single("file"),ContentController.createContent)
+Router.route('/create').post(upload.array("file",10),ContentController.createContent)
 
 Router.route('/getByOneClass/:malop').get(ContentController.getContentByOneClass)
 

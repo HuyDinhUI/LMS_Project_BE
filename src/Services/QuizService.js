@@ -490,8 +490,7 @@ const getGrades = async (MaLop) => {
     SELECT 
       sv.MaSV,
       sv.hoten,
-      ${pivotColumns},
-      ROUND(AVG(bltn.TongDiem), 2) AS 'Trung bình'
+      ${pivotColumns}
     FROM TracNghiem tn
     JOIN LopHoc lh ON tn.MaLop = lh.MaLop
     JOIN DangKyHocPhan dkhp ON dkhp.MaLop = lh.MaLop
